@@ -19,6 +19,7 @@ export default function SongScreen({
   const [toneIndex, setToneIndex] = useState(0);
   const [simplified, setSimplified] = useState(false);
   const [autoScroll, setAutoScroll] = useState(false);
+  const [favorite, setFavorite] = useState(false);
 
   const scrollRef = useRef(null);
   const scrollPosition = useRef(0);
@@ -56,6 +57,10 @@ export default function SongScreen({
     setAutoScroll(!autoScroll);
   }
 
+  function toggleFavorite() {
+    setFavorite(!favorite);
+  }
+
   useEffect(() => {
     if (!autoScroll) {
       return;
@@ -85,7 +90,22 @@ export default function SongScreen({
           <Text style={styles.artist}>{artistName}</Text>
         </View>
 
-        <Text style={styles.more}>•••</Text>
+        <Pressable
+          style={[
+            styles.favoriteButton,
+            favorite && styles.favoriteButtonActive,
+          ]}
+          onPress={toggleFavorite}
+        >
+          <Text
+            style={[
+              styles.favoriteIcon,
+              favorite && styles.favoriteIconActive,
+            ]}
+          >
+            {favorite ? '♥' : '♡'}
+          </Text>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -144,6 +164,14 @@ export default function SongScreen({
             </Text>
           </Pressable>
         </View>
+
+        {favorite && (
+          <View style={styles.message}>
+            <Text style={styles.messageText}>
+              ♥ Música adicionada aos favoritos
+            </Text>
+          </View>
+        )}
 
         {autoScroll && (
           <View style={styles.message}>
@@ -276,9 +304,29 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  more: {
+  favoriteButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  favoriteButtonActive: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
+  },
+
+  favoriteIcon: {
     color: colors.text,
-    fontSize: 17,
+    fontSize: 25,
+  },
+
+  favoriteIconActive: {
+    color: colors.primary,
   },
 
   content: {
