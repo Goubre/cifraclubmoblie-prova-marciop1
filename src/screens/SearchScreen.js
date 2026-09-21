@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  Pressable,
 } from 'react-native';
 
 import BottomNav from '../components/BottomNav';
@@ -29,6 +30,12 @@ export default function SearchScreen({ onNavigate }) {
           item.subtitle.toLowerCase().includes(search.toLowerCase())
       )
     : [];
+
+  function handleResultPress(item) {
+    if (item.type === 'artist') {
+      onNavigate('Artista');
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -74,7 +81,11 @@ export default function SearchScreen({ onNavigate }) {
 
             {filteredResults.length > 0 ? (
               filteredResults.map((item) => (
-                <View key={item.id} style={styles.resultItem}>
+                <Pressable
+                  key={item.id}
+                  style={styles.resultItem}
+                  onPress={() => handleResultPress(item)}
+                >
                   <View style={styles.resultIcon}>
                     <Text style={styles.resultIconText}>
                       {item.type === 'artist' ? '♫' : '♪'}
@@ -92,7 +103,7 @@ export default function SearchScreen({ onNavigate }) {
                   </View>
 
                   <Text style={styles.more}>⋮</Text>
-                </View>
+                </Pressable>
               ))
             ) : (
               <Text style={styles.noResults}>
