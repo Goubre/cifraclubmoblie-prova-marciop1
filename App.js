@@ -71,5 +71,11 @@ export default function App() {
     );
   }
 
-  return <HomeScreen onNavigate={setScreen} />;
+ return (
+  <HomeScreen
+    onNavigate={setScreen}
+    onOpenArtist={openArtist}
+    onOpenSong={openSong}
+  />
+);
 }

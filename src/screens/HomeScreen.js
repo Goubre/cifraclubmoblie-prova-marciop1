@@ -12,7 +12,11 @@ import {
 import { colors } from '../theme/colors';
 import BottomNav from '../components/BottomNav';
 
-export default function HomeScreen({ onNavigate }) {
+export default function HomeScreen({
+  onNavigate,
+  onOpenArtist,
+  onOpenSong,
+}) {
   const trendingSongs = [
     {
       title: 'Come As You Are',
@@ -35,6 +39,10 @@ export default function HomeScreen({ onNavigate }) {
       number: '04',
     },
   ];
+
+  function handleSongPress(song) {
+    onOpenSong?.(song.title, song.artist);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,30 +108,40 @@ export default function HomeScreen({ onNavigate }) {
           <View style={styles.highlightTop}>
             <View style={styles.featureBadge}>
               <Text style={styles.featureBadgeText}>
-                AULA EM DESTAQUE
+                DESTAQUE
               </Text>
             </View>
 
-            <Text style={styles.highlightMusic}>♪</Text>
+            <Text style={styles.highlightMusic}>♫</Text>
           </View>
 
           <View style={styles.highlightContent}>
             <Text style={styles.highlightSmall}>
-              Aprenda a tocar
+              Uma das mais tocadas
             </Text>
 
             <Text style={styles.highlightTitle}>
-              Your Song
+              Come As You Are
             </Text>
 
-            <Text style={styles.highlightArtist}>
-              Elton John
-            </Text>
+            <Pressable
+              onPress={() => onOpenArtist?.('Nirvana')}
+            >
+              <Text style={styles.highlightArtist}>
+                Nirvana
+              </Text>
+            </Pressable>
 
-            <Pressable style={styles.highlightButton}>
+            <Pressable
+              style={styles.highlightButton}
+              onPress={() =>
+                onOpenSong?.('Come As You Are', 'Nirvana')
+              }
+            >
               <Text style={styles.playIcon}>▶</Text>
+
               <Text style={styles.highlightButtonText}>
-                Aprender a tocar
+                Abrir cifra
               </Text>
             </Pressable>
           </View>
@@ -131,39 +149,58 @@ export default function HomeScreen({ onNavigate }) {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            Tocadas recentemente
+            Continue tocando
           </Text>
-
-          <Text style={styles.seeAll}>Ver todas</Text>
         </View>
 
-        <View style={styles.recentCard}>
+        <Pressable
+          style={styles.recentCard}
+          onPress={() =>
+            onOpenSong?.('Come As You Are', 'Nirvana')
+          }
+        >
           <View style={styles.songCover}>
             <Text style={styles.coverText}>♪</Text>
           </View>
 
           <View style={styles.songInfo}>
-            <Text style={styles.songName}>I Remember You</Text>
-            <Text style={styles.artist}>Adventure Time</Text>
+            <Text style={styles.songName}>
+              Come As You Are
+            </Text>
+
+            <Text style={styles.artist}>
+              Nirvana • Cifra
+            </Text>
           </View>
 
-          <Text style={styles.more}>•••</Text>
-        </View>
+          <Text style={styles.arrow}>›</Text>
+        </Pressable>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Músicas em alta</Text>
-          <Text style={styles.seeAll}>Ver mais</Text>
+          <Text style={styles.sectionTitle}>
+            Músicas em alta
+          </Text>
+
+          <Pressable onPress={() => onNavigate('Busca')}>
+            <Text style={styles.seeAll}>Ver mais</Text>
+          </Pressable>
         </View>
 
         <View style={styles.trendingContainer}>
           {trendingSongs.map((song) => (
-            <View key={song.title} style={styles.trendingSong}>
+            <Pressable
+              key={song.title}
+              style={styles.trendingSong}
+              onPress={() => handleSongPress(song)}
+            >
               <Text style={styles.songNumber}>
                 {song.number}
               </Text>
 
               <View style={styles.trendingCover}>
-                <Text style={styles.trendingCoverText}>♪</Text>
+                <Text style={styles.trendingCoverText}>
+                  ♪
+                </Text>
               </View>
 
               <View style={styles.songInfo}>
@@ -179,25 +216,65 @@ export default function HomeScreen({ onNavigate }) {
                 </Text>
               </View>
 
-              <Text style={styles.more}>•••</Text>
-            </View>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
           ))}
         </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            Artistas populares
+          </Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {[
+            { name: 'Nirvana', initials: 'N' },
+            { name: 'Metallica', initials: 'M' },
+            { name: "Guns N' Roses", initials: 'GNR' },
+            { name: 'Foo Fighters', initials: 'FF' },
+          ].map((artist) => (
+            <Pressable
+              key={artist.name}
+              style={styles.artistCard}
+              onPress={() => onOpenArtist?.(artist.name)}
+            >
+              <View style={styles.artistCircle}>
+                <Text style={styles.artistInitials}>
+                  {artist.initials}
+                </Text>
+              </View>
+
+              <Text
+                style={styles.artistCardName}
+                numberOfLines={1}
+              >
+                {artist.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
 
         <View style={styles.bottomSpace} />
       </ScrollView>
 
-      <BottomNav active="Início" onNavigate={onNavigate} />
+      <BottomNav
+        active="Início"
+        onNavigate={onNavigate}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-  flex: 1,
-  backgroundColor: colors.background,
-  paddingTop: StatusBar.currentHeight || 0,
-},
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingTop: StatusBar.currentHeight || 0,
+  },
 
   content: {
     flex: 1,
@@ -205,14 +282,14 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 18,
+    paddingTop: 16,
   },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 34,
+    marginBottom: 28,
   },
 
   logoRow: {
@@ -265,21 +342,20 @@ const styles = StyleSheet.create({
 
   title: {
     color: colors.text,
-    fontSize: 26,
-    lineHeight: 33,
+    fontSize: 25,
+    lineHeight: 32,
     fontWeight: '800',
-    maxWidth: 300,
-    marginBottom: 20,
+    marginBottom: 19,
   },
 
   categoryScroll: {
-    marginBottom: 24,
+    marginBottom: 22,
   },
 
   category: {
     backgroundColor: colors.surface,
     paddingHorizontal: 17,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 20,
     marginRight: 9,
     borderWidth: 1,
@@ -289,7 +365,7 @@ const styles = StyleSheet.create({
   categoryActive: {
     backgroundColor: colors.text,
     paddingHorizontal: 17,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: 20,
     marginRight: 9,
   },
@@ -297,7 +373,6 @@ const styles = StyleSheet.create({
   categoryText: {
     color: colors.textSecondary,
     fontSize: 14,
-    fontWeight: '500',
   },
 
   categoryActiveText: {
@@ -307,10 +382,10 @@ const styles = StyleSheet.create({
   },
 
   highlight: {
-    minHeight: 260,
+    minHeight: 225,
     backgroundColor: '#201812',
-    borderRadius: 24,
-    padding: 22,
+    borderRadius: 22,
+    padding: 20,
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#34271e',
@@ -338,32 +413,32 @@ const styles = StyleSheet.create({
 
   highlightMusic: {
     color: '#4b3729',
-    fontSize: 54,
+    fontSize: 50,
     fontWeight: 'bold',
   },
 
   highlightContent: {
-    marginTop: 35,
+    marginTop: 25,
   },
 
   highlightSmall: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: 12,
     marginBottom: 4,
   },
 
   highlightTitle: {
     color: colors.text,
-    fontSize: 34,
+    fontSize: 29,
     fontWeight: '800',
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
 
   highlightArtist: {
     color: colors.primary,
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: '700',
-    marginTop: 2,
+    marginTop: 3,
   },
 
   highlightButton: {
@@ -371,15 +446,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'flex-start',
     paddingHorizontal: 15,
-    paddingVertical: 11,
-    marginTop: 18,
+    paddingVertical: 10,
+    marginTop: 15,
     flexDirection: 'row',
     alignItems: 'center',
   },
 
   playIcon: {
     color: colors.textDark,
-    fontSize: 11,
+    fontSize: 10,
     marginRight: 8,
   },
 
@@ -393,13 +468,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 15,
+    marginTop: 29,
+    marginBottom: 14,
   },
 
   sectionTitle: {
     color: colors.text,
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: '800',
   },
 
@@ -420,8 +495,8 @@ const styles = StyleSheet.create({
   },
 
   songCover: {
-    width: 54,
-    height: 54,
+    width: 52,
+    height: 52,
     borderRadius: 12,
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
@@ -431,7 +506,7 @@ const styles = StyleSheet.create({
 
   coverText: {
     color: colors.primary,
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: 'bold',
   },
 
@@ -451,10 +526,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  more: {
+  arrow: {
     color: colors.muted,
-    fontSize: 17,
-    paddingHorizontal: 7,
+    fontSize: 27,
+    paddingHorizontal: 6,
   },
 
   trendingContainer: {
@@ -466,7 +541,7 @@ const styles = StyleSheet.create({
   },
 
   trendingSong: {
-    minHeight: 74,
+    minHeight: 70,
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -481,8 +556,8 @@ const styles = StyleSheet.create({
   },
 
   trendingCover: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: 10,
     backgroundColor: colors.surfaceLight,
     alignItems: 'center',
@@ -499,6 +574,38 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     fontWeight: '600',
+  },
+
+  artistCard: {
+    width: 92,
+    marginRight: 14,
+    alignItems: 'center',
+  },
+
+  artistCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1,
+    borderColor: '#4b2c18',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  artistInitials: {
+    color: colors.primary,
+    fontSize: 17,
+    fontWeight: '800',
+  },
+
+  artistCardName: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 9,
+    width: 90,
+    textAlign: 'center',
   },
 
   bottomSpace: {
