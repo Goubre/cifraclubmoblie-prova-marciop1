@@ -7,33 +7,186 @@ import {
   SafeAreaView,
   ScrollView,
   Pressable,
+  StatusBar,
 } from 'react-native';
 
 import BottomNav from '../components/BottomNav';
 import { colors } from '../theme/colors';
 
-export default function SearchScreen({ onNavigate }) {
+export default function SearchScreen({
+  onNavigate,
+  onOpenArtist,
+  onOpenSong,
+}) {
   const [search, setSearch] = useState('');
 
   const results = [
-    { id: 1, title: 'Nirvana', subtitle: 'Artista', type: 'artist' },
-    { id: 2, title: 'Come As You Are', subtitle: 'Nirvana', type: 'song' },
-    { id: 3, title: 'Smells Like Teen Spirit', subtitle: 'Nirvana', type: 'song' },
-    { id: 4, title: 'Heart-Shaped Box', subtitle: 'Nirvana', type: 'song' },
-    { id: 5, title: 'Polly', subtitle: 'Nirvana', type: 'song' },
+    {
+      id: 1,
+      title: 'Nirvana',
+      subtitle: 'Artista',
+      type: 'artist',
+      artist: 'Nirvana',
+    },
+    {
+      id: 2,
+      title: 'Come As You Are',
+      subtitle: 'Nirvana',
+      type: 'song',
+      artist: 'Nirvana',
+    },
+    {
+      id: 3,
+      title: 'Smells Like Teen Spirit',
+      subtitle: 'Nirvana',
+      type: 'song',
+      artist: 'Nirvana',
+    },
+    {
+      id: 4,
+      title: 'Heart-Shaped Box',
+      subtitle: 'Nirvana',
+      type: 'song',
+      artist: 'Nirvana',
+    },
+
+    {
+      id: 5,
+      title: 'Metallica',
+      subtitle: 'Artista',
+      type: 'artist',
+      artist: 'Metallica',
+    },
+    {
+      id: 6,
+      title: 'Enter Sandman',
+      subtitle: 'Metallica',
+      type: 'song',
+      artist: 'Metallica',
+    },
+    {
+      id: 7,
+      title: 'Nothing Else Matters',
+      subtitle: 'Metallica',
+      type: 'song',
+      artist: 'Metallica',
+    },
+    {
+      id: 8,
+      title: 'Master of Puppets',
+      subtitle: 'Metallica',
+      type: 'song',
+      artist: 'Metallica',
+    },
+
+    {
+      id: 9,
+      title: "Guns N' Roses",
+      subtitle: 'Artista',
+      type: 'artist',
+      artist: "Guns N' Roses",
+    },
+    {
+      id: 10,
+      title: "Sweet Child O' Mine",
+      subtitle: "Guns N' Roses",
+      type: 'song',
+      artist: "Guns N' Roses",
+    },
+    {
+      id: 11,
+      title: 'November Rain',
+      subtitle: "Guns N' Roses",
+      type: 'song',
+      artist: "Guns N' Roses",
+    },
+    {
+      id: 12,
+      title: 'Patience',
+      subtitle: "Guns N' Roses",
+      type: 'song',
+      artist: "Guns N' Roses",
+    },
+
+    {
+      id: 13,
+      title: 'Red Hot Chili Peppers',
+      subtitle: 'Artista',
+      type: 'artist',
+      artist: 'Red Hot Chili Peppers',
+    },
+    {
+      id: 14,
+      title: 'Californication',
+      subtitle: 'Red Hot Chili Peppers',
+      type: 'song',
+      artist: 'Red Hot Chili Peppers',
+    },
+    {
+      id: 15,
+      title: 'Otherside',
+      subtitle: 'Red Hot Chili Peppers',
+      type: 'song',
+      artist: 'Red Hot Chili Peppers',
+    },
+    {
+      id: 16,
+      title: 'Under the Bridge',
+      subtitle: 'Red Hot Chili Peppers',
+      type: 'song',
+      artist: 'Red Hot Chili Peppers',
+    },
+
+    {
+      id: 17,
+      title: 'Foo Fighters',
+      subtitle: 'Artista',
+      type: 'artist',
+      artist: 'Foo Fighters',
+    },
+    {
+      id: 18,
+      title: 'Everlong',
+      subtitle: 'Foo Fighters',
+      type: 'song',
+      artist: 'Foo Fighters',
+    },
+    {
+      id: 19,
+      title: 'The Pretender',
+      subtitle: 'Foo Fighters',
+      type: 'song',
+      artist: 'Foo Fighters',
+    },
+    {
+      id: 20,
+      title: 'Learn to Fly',
+      subtitle: 'Foo Fighters',
+      type: 'song',
+      artist: 'Foo Fighters',
+    },
   ];
 
   const filteredResults = search.trim()
     ? results.filter(
         (item) =>
-          item.title.toLowerCase().includes(search.toLowerCase()) ||
-          item.subtitle.toLowerCase().includes(search.toLowerCase())
+          item.title
+            .toLowerCase()
+            .includes(search.toLowerCase()) ||
+          item.subtitle
+            .toLowerCase()
+            .includes(search.toLowerCase())
       )
     : [];
 
   function handleResultPress(item) {
     if (item.type === 'artist') {
-      onNavigate('Artista');
+      onOpenArtist(item.artist);
+      return;
+    }
+
+    if (item.type === 'song') {
+      onOpenSong(item.title, item.artist);
     }
   }
 
@@ -42,16 +195,32 @@ export default function SearchScreen({ onNavigate }) {
       <ScrollView
         style={styles.content}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Busca</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Busca</Text>
+          <Text style={styles.subtitle}>
+            Encontre sua próxima música
+          </Text>
+        </View>
 
-        <TextInput
-          style={styles.searchInput}
-          placeholder="O que você quer tocar?"
-          placeholderTextColor="#8e8e8e"
-          value={search}
-          onChangeText={setSearch}
-        />
+        <View style={styles.searchContainer}>
+          <Text style={styles.searchIcon}>⌕</Text>
+
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Música, artista ou banda"
+            placeholderTextColor={colors.muted}
+            value={search}
+            onChangeText={setSearch}
+          />
+
+          {search.length > 0 && (
+            <Pressable onPress={() => setSearch('')}>
+              <Text style={styles.clearButton}>×</Text>
+            </Pressable>
+          )}
+        </View>
 
         {search.trim() === '' ? (
           <>
@@ -59,21 +228,51 @@ export default function SearchScreen({ onNavigate }) {
 
             <View style={styles.categories}>
               <View style={styles.category}>
+                <Text style={styles.categoryIcon}>♪</Text>
                 <Text style={styles.categoryText}>Músicas</Text>
               </View>
 
               <View style={styles.category}>
+                <Text style={styles.categoryIcon}>♫</Text>
                 <Text style={styles.categoryText}>Artistas</Text>
               </View>
 
               <View style={styles.category}>
+                <Text style={styles.categoryIcon}>▣</Text>
                 <Text style={styles.categoryText}>Álbuns</Text>
               </View>
             </View>
 
-            <Text style={styles.hint}>
-              Pesquise por músicas, artistas ou bandas.
+            <Text style={styles.sectionTitle}>
+              Artistas populares
             </Text>
+
+            {[
+              'Nirvana',
+              'Metallica',
+              "Guns N' Roses",
+              'Red Hot Chili Peppers',
+              'Foo Fighters',
+            ].map((artist) => (
+              <Pressable
+                key={artist}
+                style={styles.popularArtist}
+                onPress={() => onOpenArtist(artist)}
+              >
+                <View style={styles.artistAvatar}>
+                  <Text style={styles.artistAvatarText}>
+                    {artist.charAt(0)}
+                  </Text>
+                </View>
+
+                <View style={styles.resultInfo}>
+                  <Text style={styles.resultTitle}>{artist}</Text>
+                  <Text style={styles.resultSubtitle}>Artista</Text>
+                </View>
+
+                <Text style={styles.arrow}>›</Text>
+              </Pressable>
+            ))}
           </>
         ) : (
           <View style={styles.results}>
@@ -102,16 +301,26 @@ export default function SearchScreen({ onNavigate }) {
                     </Text>
                   </View>
 
-                  <Text style={styles.more}>⋮</Text>
+                  <Text style={styles.arrow}>›</Text>
                 </Pressable>
               ))
             ) : (
-              <Text style={styles.noResults}>
-                Nenhum resultado encontrado.
-              </Text>
+              <View style={styles.empty}>
+                <Text style={styles.emptyIcon}>⌕</Text>
+
+                <Text style={styles.emptyTitle}>
+                  Nenhum resultado
+                </Text>
+
+                <Text style={styles.noResults}>
+                  Tente pesquisar outro artista ou música.
+                </Text>
+              </View>
             )}
           </View>
         )}
+
+        <View style={styles.bottomSpace} />
       </ScrollView>
 
       <BottomNav active="Busca" onNavigate={onNavigate} />
@@ -123,84 +332,146 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    paddingTop: StatusBar.currentHeight || 0,
   },
 
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+  },
+
+  header: {
+    marginTop: 14,
+    marginBottom: 22,
   },
 
   title: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontWeight: '800',
+  },
+
+  subtitle: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: 5,
+  },
+
+  searchContainer: {
+    height: 56,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+
+  searchIcon: {
+    color: colors.textSecondary,
+    fontSize: 24,
+    marginRight: 10,
   },
 
   searchInput: {
-    backgroundColor: '#242424',
-    color: '#ffffff',
-    fontSize: 17,
-    paddingHorizontal: 18,
-    height: 54,
-    borderRadius: 14,
+    flex: 1,
+    color: colors.text,
+    fontSize: 16,
+    height: '100%',
+  },
+
+  clearButton: {
+    color: colors.textSecondary,
+    fontSize: 27,
+    paddingHorizontal: 5,
   },
 
   sectionTitle: {
-    color: '#ffffff',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginTop: 32,
-    marginBottom: 16,
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: '800',
+    marginTop: 30,
+    marginBottom: 15,
   },
 
   categories: {
     flexDirection: 'row',
-    gap: 10,
   },
 
   category: {
-    backgroundColor: '#242424',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 12,
+    flex: 1,
+    minHeight: 85,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  categoryIcon: {
+    color: colors.primary,
+    fontSize: 21,
+    marginBottom: 7,
   },
 
   categoryText: {
-    color: '#ffffff',
-    fontSize: 15,
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '600',
   },
 
-  hint: {
-    color: '#8e8e8e',
-    fontSize: 15,
-    marginTop: 28,
+  popularArtist: {
+    minHeight: 70,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+
+  artistAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 13,
+  },
+
+  artistAvatarText: {
+    color: colors.primary,
+    fontSize: 19,
+    fontWeight: '800',
   },
 
   results: {
-    marginTop: 4,
+    marginTop: 2,
   },
 
   resultItem: {
+    minHeight: 72,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
 
   resultIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 8,
-    backgroundColor: '#2a211b',
+    width: 48,
+    height: 48,
+    borderRadius: 13,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 13,
   },
 
   resultIconText: {
-    color: '#ff6b00',
-    fontSize: 23,
+    color: colors.primary,
+    fontSize: 20,
     fontWeight: 'bold',
   },
 
@@ -209,26 +480,46 @@ const styles = StyleSheet.create({
   },
 
   resultTitle: {
-    color: '#ffffff',
-    fontSize: 17,
+    color: colors.text,
+    fontSize: 16,
     fontWeight: '600',
   },
 
   resultSubtitle: {
-    color: '#8e8e8e',
-    fontSize: 14,
-    marginTop: 3,
+    color: colors.textSecondary,
+    fontSize: 13,
+    marginTop: 4,
   },
 
-  more: {
-    color: '#ffffff',
-    fontSize: 26,
-    paddingHorizontal: 8,
+  arrow: {
+    color: colors.muted,
+    fontSize: 28,
+  },
+
+  empty: {
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+
+  emptyIcon: {
+    color: colors.muted,
+    fontSize: 42,
+  },
+
+  emptyTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 15,
   },
 
   noResults: {
-    color: '#8e8e8e',
-    fontSize: 15,
-    marginTop: 5,
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: 7,
+  },
+
+  bottomSpace: {
+    height: 30,
   },
 });

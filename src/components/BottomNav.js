@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+} from 'react-native';
+
 import { colors } from '../theme/colors';
 
 const items = [
@@ -10,7 +16,10 @@ const items = [
   { icon: '•••', label: 'Mais' },
 ];
 
-export default function BottomNav({ active = 'Início', onNavigate }) {
+export default function BottomNav({
+  active = 'Início',
+  onNavigate,
+}) {
   return (
     <View style={styles.container}>
       {items.map((item) => {
@@ -18,15 +27,29 @@ export default function BottomNav({ active = 'Início', onNavigate }) {
 
         return (
           <Pressable
-  key={item.label}
-  style={styles.item}
-  onPress={() => onNavigate?.(item.label)}
->
-            <Text style={[styles.icon, selected && styles.selected]}>
-              {item.icon}
-            </Text>
+            key={item.label}
+            style={styles.item}
+            onPress={() => onNavigate?.(item.label)}
+          >
+            <View style={styles.iconArea}>
+              <Text
+                style={[
+                  styles.icon,
+                  selected && styles.selectedIcon,
+                ]}
+              >
+                {item.icon}
+              </Text>
 
-            <Text style={[styles.label, selected && styles.selected]}>
+              {selected && <View style={styles.activeIndicator} />}
+            </View>
+
+            <Text
+              style={[
+                styles.label,
+                selected && styles.selectedLabel,
+              ]}
+            >
               {item.label}
             </Text>
           </Pressable>
@@ -38,36 +61,56 @@ export default function BottomNav({ active = 'Início', onNavigate }) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 76,
-    backgroundColor: '#191919',
+    height: 78,
+    backgroundColor: colors.backgroundSoft,
     borderTopWidth: 1,
-    borderTopColor: '#303030',
+    borderTopColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingBottom: 8,
+    paddingBottom: 7,
+    paddingHorizontal: 4,
   },
 
   item: {
     flex: 1,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  iconArea: {
+    height: 31,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   icon: {
-    color: '#8e8e8e',
-    fontSize: 25,
-    height: 32,
+    color: colors.muted,
+    fontSize: 23,
+  },
+
+  selectedIcon: {
+    color: colors.text,
+  },
+
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    width: 16,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.primary,
   },
 
   label: {
-    color: '#8e8e8e',
-    fontSize: 12,
-    marginTop: 2,
+    color: colors.muted,
+    fontSize: 11,
+    marginTop: 5,
+    fontWeight: '500',
   },
 
-  selected: {
+  selectedLabel: {
     color: colors.text,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 });
