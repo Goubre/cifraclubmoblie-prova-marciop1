@@ -10,7 +10,7 @@ import {
 
 import { colors } from '../theme/colors';
 
-export default function ArtistScreen({ onBack }) {
+export default function ArtistScreen({ onBack, onNavigate }) {
   const songs = [
     'Come As You Are',
     'Smells Like Teen Spirit',
@@ -18,6 +18,12 @@ export default function ArtistScreen({ onBack }) {
     'Polly',
     'About a Girl',
   ];
+
+  function handleSongPress(song) {
+    if (song === 'Come As You Are') {
+      onNavigate('Música');
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,7 +73,11 @@ export default function ArtistScreen({ onBack }) {
 
         <View style={styles.songList}>
           {songs.map((song, index) => (
-            <Pressable key={song} style={styles.song}>
+            <Pressable
+              key={song}
+              style={styles.song}
+              onPress={() => handleSongPress(song)}
+            >
               <View style={styles.songNumber}>
                 <Text style={styles.songNumberText}>{index + 1}</Text>
               </View>

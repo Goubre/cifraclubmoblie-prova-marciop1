@@ -6,6 +6,7 @@ import SearchScreen from './src/screens/SearchScreen';
 import AcademyScreen from './src/screens/AcademyScreen';
 import MoreScreen from './src/screens/MoreScreen';
 import ArtistScreen from './src/screens/ArtistScreen';
+import SongScreen from './src/screens/SongScreen';
 
 export default function App() {
   const [screen, setScreen] = useState('Início');
@@ -27,7 +28,16 @@ export default function App() {
   }
 
   if (screen === 'Artista') {
-    return <ArtistScreen onBack={() => setScreen('Busca')} />;
+    return (
+      <ArtistScreen
+        onBack={() => setScreen('Busca')}
+        onNavigate={setScreen}
+      />
+    );
+  }
+
+  if (screen === 'Música') {
+    return <SongScreen onBack={() => setScreen('Artista')} />;
   }
 
   return <HomeScreen onNavigate={setScreen} />;
