@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -83,12 +83,49 @@ const artists = {
   },
 };
 
+const tabs = [
+  'Cifras',
+  'Letras',
+  'Tabs PRO',
+  'Baixo',
+  'Bateria',
+];
+
 export default function ArtistScreen({
   artistName = 'Nirvana',
   onBack,
   onOpenSong,
 }) {
+  const [activeTab, setActiveTab] = useState('Cifras');
+  const [following, setFollowing] = useState(false);
+
   const artist = artists[artistName] || artists.Nirvana;
+
+  function getTypeName() {
+    if (activeTab === 'Cifras') {
+      return 'Cifra';
+    }
+
+    if (activeTab === 'Letras') {
+      return 'Letra';
+    }
+
+    if (activeTab === 'Tabs PRO') {
+      return 'Tab PRO';
+    }
+
+    if (activeTab === 'Baixo') {
+      return 'Tab de baixo';
+    }
+
+    return 'Tab de bateria';
+  }
+
+  function handleSongPress(song) {
+    if (activeTab === 'Cifras') {
+      onOpenSong(song, artist.name);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,7 +134,10 @@ export default function ArtistScreen({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topBar}>
-          <Pressable onPress={onBack} style={styles.backButton}>
+          <Pressable
+            onPress={onBack}
+            style={styles.backButton}
+          >
             <Text style={styles.backText}>‹</Text>
           </Pressable>
 
@@ -113,71 +153,115 @@ export default function ArtistScreen({
             <Text
               style={[
                 styles.artistLogo,
-                artist.initials.length > 2 && styles.smallLogo,
+                artist.initials.length > 2 &&
+                  styles.smallLogo,
               ]}
             >
               {artist.initials}
             </Text>
           </View>
 
-          <Text style={styles.artistName}>{artist.name}</Text>
+          <Text style={styles.artistName}>
+            {artist.name}
+          </Text>
 
-          <Text style={styles.genre}>{artist.description}</Text>
+          <Text style={styles.genre}>
+            {artist.description}
+          </Text>
 
-          <Text style={styles.artistInfo}>{artist.info}</Text>
+          <Text style={styles.artistInfo}>
+            {artist.info}
+          </Text>
 
           <View style={styles.artistActions}>
-            <Pressable style={styles.followButton}>
-              <Text style={styles.followButtonText}>Seguir</Text>
+            <Pressable
+              style={[
+                styles.followButton,
+                following && styles.followingButton,
+              ]}
+              onPress={() => setFollowing(!following)}
+            >
+              <Text
+                style={[
+                  styles.followButtonText,
+                  following && styles.followingButtonText,
+                ]}
+              >
+                {following ? 'Seguindo' : 'Seguir'}
+              </Text>
             </Pressable>
 
-            <Pressable style={styles.playButton}>
+            <Pressable
+              style={styles.playButton}
+              onPress={() =>
+                handleSongPress(artist.songs[0])
+              }
+            >
               <Text style={styles.playButtonText}>▶</Text>
             </Pressable>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Músicas populares</Text>
+        <Text style={styles.sectionTitle}>
+          Músicas populares
+        </Text>
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.tabs}
         >
-          <View style={[styles.tab, styles.activeTab]}>
-            <Text style={styles.activeTabText}>Cifras</Text>
-          </View>
+          {tabs.map((tab) => {
+            const selected = activeTab === tab;
 
-          <View style={styles.tab}>
-            <Text style={styles.tabText}>Letras</Text>
-          </View>
-
-          <View style={styles.tab}>
-            <Text style={styles.tabText}>Tabs PRO</Text>
-          </View>
-
-          <View style={styles.tab}>
-            <Text style={styles.tabText}>Baixo</Text>
-          </View>
-
-          <View style={styles.tab}>
-            <Text style={styles.tabText}>Bateria</Text>
-          </View>
+            return (
+              <Pressable
+                key={tab}
+                style={[
+                  styles.tab,
+                  selected && styles.activeTab,
+                ]}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text
+                  style={
+                    selected
+                      ? styles.activeTabText
+                      : styles.tabText
+                  }
+                >
+                  {tab}
+                </Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
+
+        <View style={styles.selectedType}>
+          <Text style={styles.selectedTypeLabel}>
+            Exibindo
+          </Text>
+
+          <Text style={styles.selectedTypeValue}>
+            {activeTab}
+          </Text>
+        </View>
 
         <View style={styles.songList}>
           {artist.songs.map((song, index) => (
             <Pressable
               key={song}
               style={styles.song}
-              onPress={() => onOpenSong(song, artist.name)}
+              onPress={() => handleSongPress(song)}
             >
               <Text style={styles.songNumber}>
                 {String(index + 1).padStart(2, '0')}
               </Text>
 
               <View style={styles.songIcon}>
-                <Text style={styles.songIconText}>♪</Text>
+                <Text style={styles.songIconText}>
+                  {activeTab === 'Letras' ? '≡' : '♪'}
+                </Text>
               </View>
 
               <View style={styles.songInfo}>
@@ -189,14 +273,28 @@ export default function ArtistScreen({
                 </Text>
 
                 <Text style={styles.songType}>
-                  {artist.name} • Cifra
+                  {artist.name} • {getTypeName()}
                 </Text>
               </View>
 
-              <Text style={styles.more}>•••</Text>
+              <Text style={styles.arrow}>›</Text>
             </Pressable>
           ))}
         </View>
+
+        {activeTab !== 'Cifras' && (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoCardTitle}>
+              {activeTab}
+            </Text>
+
+            <Text style={styles.infoCardText}>
+              Você está visualizando as opções de{' '}
+              {activeTab.toLowerCase()} disponíveis para{' '}
+              {artist.name}.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.bottomSpace} />
       </ScrollView>
@@ -315,10 +413,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  followingButton: {
+    backgroundColor: colors.text,
+    borderColor: colors.text,
+  },
+
   followButtonText: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '700',
+  },
+
+  followingButtonText: {
+    color: colors.textDark,
   },
 
   playButton: {
@@ -346,7 +453,7 @@ const styles = StyleSheet.create({
   },
 
   tabs: {
-    marginBottom: 9,
+    marginBottom: 15,
   },
 
   tab: {
@@ -375,8 +482,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
+  selectedType: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+
+  selectedTypeLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    marginRight: 6,
+  },
+
+  selectedTypeValue: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
   songList: {
-    marginTop: 10,
+    marginTop: 5,
   },
 
   song: {
@@ -424,13 +549,35 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  more: {
+  arrow: {
     color: colors.muted,
-    fontSize: 15,
+    fontSize: 25,
     paddingLeft: 10,
   },
 
+  infoCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    padding: 15,
+    marginTop: 20,
+  },
+
+  infoCardTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  infoCardText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 5,
+  },
+
   bottomSpace: {
-    height: 35,
+    height: 40,
   },
 });
