@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,33 @@ import {
 import { colors } from '../theme/colors';
 
 export default function SongScreen({ onBack }) {
+  const [toneIndex, setToneIndex] = useState(0);
+
+  const tones = [
+    {
+      name: 'Em',
+      firstChord: 'Em',
+      secondChord: 'D',
+    },
+    {
+      name: 'F#m',
+      firstChord: 'F#m',
+      secondChord: 'E',
+    },
+    {
+      name: 'Gm',
+      firstChord: 'Gm',
+      secondChord: 'F',
+    },
+  ];
+
+  const currentTone = tones[toneIndex];
+
+  function changeTone() {
+    const nextTone = (toneIndex + 1) % tones.length;
+    setToneIndex(nextTone);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -31,9 +58,14 @@ export default function SongScreen({ onBack }) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.tools}>
-          <View style={styles.tool}>
-            <Text style={styles.toolText}>Tom: Em</Text>
-          </View>
+          <Pressable
+            style={[styles.tool, styles.activeTool]}
+            onPress={changeTone}
+          >
+            <Text style={styles.activeToolText}>
+              Tom: {currentTone.name}
+            </Text>
+          </Pressable>
 
           <View style={styles.tool}>
             <Text style={styles.toolText}>Simplificar</Text>
@@ -46,29 +78,55 @@ export default function SongScreen({ onBack }) {
 
         <Text style={styles.section}>Intro</Text>
 
-        <Text style={styles.chord}>Em    D    Em    D</Text>
+        <Text style={styles.chord}>
+          {currentTone.firstChord}    {currentTone.secondChord}    {currentTone.firstChord}    {currentTone.secondChord}
+        </Text>
 
         <Text style={styles.section}>Primeira parte</Text>
 
-        <Text style={styles.chord}>Em</Text>
-        <Text style={styles.lyric}>Come as you are, as you were</Text>
+        <Text style={styles.chord}>
+          {currentTone.firstChord}
+        </Text>
+        <Text style={styles.lyric}>
+          Come as you are, as you were
+        </Text>
 
-        <Text style={styles.chord}>D</Text>
-        <Text style={styles.lyric}>As I want you to be</Text>
+        <Text style={styles.chord}>
+          {currentTone.secondChord}
+        </Text>
+        <Text style={styles.lyric}>
+          As I want you to be
+        </Text>
 
-        <Text style={styles.chord}>Em</Text>
-        <Text style={styles.lyric}>As a friend, as a friend</Text>
+        <Text style={styles.chord}>
+          {currentTone.firstChord}
+        </Text>
+        <Text style={styles.lyric}>
+          As a friend, as a friend
+        </Text>
 
-        <Text style={styles.chord}>D</Text>
-        <Text style={styles.lyric}>As an old enemy</Text>
+        <Text style={styles.chord}>
+          {currentTone.secondChord}
+        </Text>
+        <Text style={styles.lyric}>
+          As an old enemy
+        </Text>
 
         <Text style={styles.section}>Refrão</Text>
 
-        <Text style={styles.chord}>Em</Text>
-        <Text style={styles.lyric}>Memoria, memoria</Text>
+        <Text style={styles.chord}>
+          {currentTone.firstChord}
+        </Text>
+        <Text style={styles.lyric}>
+          Memoria, memoria
+        </Text>
 
-        <Text style={styles.chord}>D</Text>
-        <Text style={styles.lyric}>Memoria</Text>
+        <Text style={styles.chord}>
+          {currentTone.secondChord}
+        </Text>
+        <Text style={styles.lyric}>
+          Memoria
+        </Text>
 
         <View style={styles.bottomSpace} />
       </ScrollView>
@@ -144,9 +202,19 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
 
+  activeTool: {
+    backgroundColor: '#ff6600',
+  },
+
   toolText: {
     color: '#ffffff',
     fontSize: 13,
+  },
+
+  activeToolText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: 'bold',
   },
 
   section: {
