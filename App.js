@@ -3,6 +3,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ListsScreen from './src/screens/ListsScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import AcademyScreen from './src/screens/AcademyScreen';
+import MoreScreen from './src/screens/MoreScreen';
 
 export default function App() {
   const [screen, setScreen] = useState('Início');
@@ -17,6 +18,10 @@ export default function App() {
 
   if (screen === 'Academy') {
     return <AcademyScreen onNavigate={setScreen} />;
+  }
+
+  if (screen === 'Mais') {
+    return <MoreScreen onNavigate={setScreen} />;
   }
 
   return <HomeScreen onNavigate={setScreen} />;
