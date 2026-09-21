@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   Text,
@@ -17,31 +17,73 @@ export default function HomeScreen({
   onOpenArtist,
   onOpenSong,
 }) {
-  const trendingSongs = [
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
+  const categories = [
+    'Todos',
+    'Rock',
+    'Pop',
+    'Sertanejo',
+    'MPB',
+  ];
+
+  const songs = [
     {
       title: 'Come As You Are',
       artist: 'Nirvana',
-      number: '01',
+      genre: 'Rock',
     },
     {
       title: 'Nothing Else Matters',
       artist: 'Metallica',
-      number: '02',
+      genre: 'Rock',
     },
     {
       title: "Sweet Child O' Mine",
       artist: "Guns N' Roses",
-      number: '03',
+      genre: 'Rock',
     },
     {
       title: 'Californication',
       artist: 'Red Hot Chili Peppers',
-      number: '04',
+      genre: 'Rock',
+    },
+    {
+      title: 'Trevo',
+      artist: 'ANAVITÓRIA',
+      genre: 'Pop',
+    },
+    {
+      title: 'Velha Infância',
+      artist: 'Tribalistas',
+      genre: 'MPB',
+    },
+    {
+      title: 'Evidências',
+      artist: 'Chitãozinho & Xororó',
+      genre: 'Sertanejo',
     },
   ];
 
+  const filteredSongs =
+    selectedCategory === 'Todos'
+      ? songs.slice(0, 4)
+      : songs.filter(
+          (song) => song.genre === selectedCategory
+        );
+
   function handleSongPress(song) {
-    onOpenSong?.(song.title, song.artist);
+    if (
+      song.artist === 'Nirvana' ||
+      song.artist === 'Metallica' ||
+      song.artist === "Guns N' Roses" ||
+      song.artist === 'Red Hot Chili Peppers'
+    ) {
+      onOpenSong?.(song.title, song.artist);
+      return;
+    }
+
+    onNavigate('Busca');
   }
 
   return (
@@ -83,25 +125,31 @@ export default function HomeScreen({
           showsHorizontalScrollIndicator={false}
           style={styles.categoryScroll}
         >
-          <View style={styles.categoryActive}>
-            <Text style={styles.categoryActiveText}>Todos</Text>
-          </View>
+          {categories.map((category) => {
+            const active = selectedCategory === category;
 
-          <View style={styles.category}>
-            <Text style={styles.categoryText}>Rock</Text>
-          </View>
-
-          <View style={styles.category}>
-            <Text style={styles.categoryText}>Pop</Text>
-          </View>
-
-          <View style={styles.category}>
-            <Text style={styles.categoryText}>Sertanejo</Text>
-          </View>
-
-          <View style={styles.category}>
-            <Text style={styles.categoryText}>MPB</Text>
-          </View>
+            return (
+              <Pressable
+                key={category}
+                style={
+                  active
+                    ? styles.categoryActive
+                    : styles.category
+                }
+                onPress={() => setSelectedCategory(category)}
+              >
+                <Text
+                  style={
+                    active
+                      ? styles.categoryActiveText
+                      : styles.categoryText
+                  }
+                >
+                  {category}
+                </Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
 
         <View style={styles.highlight}>
@@ -177,9 +225,17 @@ export default function HomeScreen({
         </Pressable>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            Músicas em alta
-          </Text>
+          <View>
+            <Text style={styles.sectionTitle}>
+              Músicas em alta
+            </Text>
+
+            {selectedCategory !== 'Todos' && (
+              <Text style={styles.filterLabel}>
+                {selectedCategory}
+              </Text>
+            )}
+          </View>
 
           <Pressable onPress={() => onNavigate('Busca')}>
             <Text style={styles.seeAll}>Ver mais</Text>
@@ -187,14 +243,14 @@ export default function HomeScreen({
         </View>
 
         <View style={styles.trendingContainer}>
-          {trendingSongs.map((song) => (
+          {filteredSongs.map((song, index) => (
             <Pressable
-              key={song.title}
+              key={`${song.title}-${song.artist}`}
               style={styles.trendingSong}
               onPress={() => handleSongPress(song)}
             >
               <Text style={styles.songNumber}>
-                {song.number}
+                {String(index + 1).padStart(2, '0')}
               </Text>
 
               <View style={styles.trendingCover}>
@@ -211,7 +267,10 @@ export default function HomeScreen({
                   {song.title}
                 </Text>
 
-                <Text style={styles.artist}>
+                <Text
+                  style={styles.artist}
+                  numberOfLines={1}
+                >
                   {song.artist}
                 </Text>
               </View>
@@ -476,6 +535,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 20,
     fontWeight: '800',
+  },
+
+  filterLabel: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
 
   seeAll: {
