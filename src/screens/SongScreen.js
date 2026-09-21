@@ -12,30 +12,49 @@ import { colors } from '../theme/colors';
 
 export default function SongScreen({ onBack }) {
   const [toneIndex, setToneIndex] = useState(0);
+  const [simplified, setSimplified] = useState(false);
 
   const tones = [
     {
       name: 'Em',
       firstChord: 'Em',
       secondChord: 'D',
+      simpleFirst: 'Em',
+      simpleSecond: 'D',
     },
     {
       name: 'F#m',
       firstChord: 'F#m',
       secondChord: 'E',
+      simpleFirst: 'F#m',
+      simpleSecond: 'E',
     },
     {
       name: 'Gm',
       firstChord: 'Gm',
       secondChord: 'F',
+      simpleFirst: 'Gm',
+      simpleSecond: 'F',
     },
   ];
 
   const currentTone = tones[toneIndex];
 
+  const firstChord = simplified
+    ? currentTone.simpleFirst
+    : currentTone.firstChord;
+
+  const secondChord = simplified
+    ? currentTone.simpleSecond
+    : currentTone.secondChord;
+
   function changeTone() {
     const nextTone = (toneIndex + 1) % tones.length;
     setToneIndex(nextTone);
+  }
+
+  function toggleSimplified() {
+    setSimplified(!simplified);
   }
 
   return (
@@ -67,63 +86,73 @@ export default function SongScreen({ onBack }) {
             </Text>
           </Pressable>
 
-          <View style={styles.tool}>
-            <Text style={styles.toolText}>Simplificar</Text>
-          </View>
+          <Pressable
+            style={[
+              styles.tool,
+              simplified && styles.activeTool,
+            ]}
+            onPress={toggleSimplified}
+          >
+            <Text
+              style={
+                simplified
+                  ? styles.activeToolText
+                  : styles.toolText
+              }
+            >
+              Simplificar
+            </Text>
+          </Pressable>
 
           <View style={styles.tool}>
             <Text style={styles.toolText}>Rolagem</Text>
           </View>
         </View>
 
+        {simplified && (
+          <View style={styles.simplifiedMessage}>
+            <Text style={styles.simplifiedMessageText}>
+              Modo simplificado ativado
+            </Text>
+          </View>
+        )}
+
         <Text style={styles.section}>Intro</Text>
 
         <Text style={styles.chord}>
-          {currentTone.firstChord}    {currentTone.secondChord}    {currentTone.firstChord}    {currentTone.secondChord}
+          {firstChord}    {secondChord}    {firstChord}    {secondChord}
         </Text>
 
         <Text style={styles.section}>Primeira parte</Text>
 
-        <Text style={styles.chord}>
-          {currentTone.firstChord}
-        </Text>
+        <Text style={styles.chord}>{firstChord}</Text>
         <Text style={styles.lyric}>
           Come as you are, as you were
         </Text>
 
-        <Text style={styles.chord}>
-          {currentTone.secondChord}
-        </Text>
+        <Text style={styles.chord}>{secondChord}</Text>
         <Text style={styles.lyric}>
           As I want you to be
         </Text>
 
-        <Text style={styles.chord}>
-          {currentTone.firstChord}
-        </Text>
+        <Text style={styles.chord}>{firstChord}</Text>
         <Text style={styles.lyric}>
           As a friend, as a friend
         </Text>
 
-        <Text style={styles.chord}>
-          {currentTone.secondChord}
-        </Text>
+        <Text style={styles.chord}>{secondChord}</Text>
         <Text style={styles.lyric}>
           As an old enemy
         </Text>
 
         <Text style={styles.section}>Refrão</Text>
 
-        <Text style={styles.chord}>
-          {currentTone.firstChord}
-        </Text>
+        <Text style={styles.chord}>{firstChord}</Text>
         <Text style={styles.lyric}>
           Memoria, memoria
         </Text>
 
-        <Text style={styles.chord}>
-          {currentTone.secondChord}
-        </Text>
+        <Text style={styles.chord}>{secondChord}</Text>
         <Text style={styles.lyric}>
           Memoria
         </Text>
@@ -191,7 +220,7 @@ const styles = StyleSheet.create({
   tools: {
     flexDirection: 'row',
     marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 20,
   },
 
   tool: {
@@ -215,6 +244,19 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 13,
     fontWeight: 'bold',
+  },
+
+  simplifiedMessage: {
+    backgroundColor: '#242424',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+  },
+
+  simplifiedMessageText: {
+    color: '#ff6600',
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   section: {
