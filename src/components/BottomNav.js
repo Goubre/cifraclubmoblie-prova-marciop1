@@ -28,10 +28,18 @@ export default function BottomNav({
         return (
           <Pressable
             key={item.label}
-            style={styles.item}
+            style={({ pressed }) => [
+              styles.item,
+              pressed && styles.itemPressed,
+            ]}
             onPress={() => onNavigate?.(item.label)}
           >
-            <View style={styles.iconArea}>
+            <View
+              style={[
+                styles.iconArea,
+                selected && styles.selectedIconArea,
+              ]}
+            >
               <Text
                 style={[
                   styles.icon,
@@ -40,8 +48,6 @@ export default function BottomNav({
               >
                 {item.icon}
               </Text>
-
-              {selected && <View style={styles.activeIndicator} />}
             </View>
 
             <Text
@@ -61,51 +67,55 @@ export default function BottomNav({
 
 const styles = StyleSheet.create({
   container: {
-    height: 78,
+    minHeight: 76,
     backgroundColor: colors.backgroundSoft,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 5,
+    paddingTop: 5,
     paddingBottom: 7,
-    paddingHorizontal: 4,
   },
 
   item: {
     flex: 1,
-    height: 64,
+    minHeight: 61,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 13,
+  },
+
+  itemPressed: {
+    opacity: 0.65,
+  },
+
+  iconArea: {
+    width: 36,
+    height: 29,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  iconArea: {
-    height: 31,
-    alignItems: 'center',
-    justifyContent: 'center',
+  selectedIconArea: {
+    backgroundColor: colors.primarySoft,
   },
 
   icon: {
     color: colors.muted,
-    fontSize: 23,
+    fontSize: 21,
   },
 
   selectedIcon: {
-    color: colors.text,
-  },
-
-  activeIndicator: {
-    position: 'absolute',
-    bottom: -2,
-    width: 16,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.primary,
+    color: colors.primary,
+    fontWeight: '700',
   },
 
   label: {
     color: colors.muted,
-    fontSize: 11,
-    marginTop: 5,
+    fontSize: 10,
+    marginTop: 4,
     fontWeight: '500',
   },
 

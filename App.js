@@ -10,8 +10,12 @@ import SongScreen from './src/screens/SongScreen';
 
 export default function App() {
   const [screen, setScreen] = useState('Início');
-  const [selectedArtist, setSelectedArtist] = useState('Nirvana');
-  const [selectedSong, setSelectedSong] = useState('Come As You Are');
+
+  const [selectedArtist, setSelectedArtist] =
+    useState('Nirvana');
+
+  const [selectedSong, setSelectedSong] =
+    useState('Come As You Are');
 
   function openArtist(artist) {
     setSelectedArtist(artist);
@@ -21,22 +25,25 @@ export default function App() {
   function openSong(song, artist) {
     setSelectedSong(song);
     setSelectedArtist(artist);
+    setScreen('Música');
+  }
 
-    if (song === 'Come As You Are') {
-      setScreen('Música');
-    } else {
-      setScreen('Artista');
-    }
+  function navigate(screenName) {
+    setScreen(screenName);
   }
 
   if (screen === 'Listas') {
-    return <ListsScreen onNavigate={setScreen} />;
+    return (
+      <ListsScreen
+        onNavigate={navigate}
+      />
+    );
   }
 
   if (screen === 'Busca') {
     return (
       <SearchScreen
-        onNavigate={setScreen}
+        onNavigate={navigate}
         onOpenArtist={openArtist}
         onOpenSong={openSong}
       />
@@ -44,11 +51,19 @@ export default function App() {
   }
 
   if (screen === 'Academy') {
-    return <AcademyScreen onNavigate={setScreen} />;
+    return (
+      <AcademyScreen
+        onNavigate={navigate}
+      />
+    );
   }
 
   if (screen === 'Mais') {
-    return <MoreScreen onNavigate={setScreen} />;
+    return (
+      <MoreScreen
+        onNavigate={navigate}
+      />
+    );
   }
 
   if (screen === 'Artista') {
@@ -71,11 +86,11 @@ export default function App() {
     );
   }
 
- return (
-  <HomeScreen
-    onNavigate={setScreen}
-    onOpenArtist={openArtist}
-    onOpenSong={openSong}
-  />
-);
+  return (
+    <HomeScreen
+      onNavigate={navigate}
+      onOpenArtist={openArtist}
+      onOpenSong={openSong}
+    />
+  );
 }

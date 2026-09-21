@@ -83,54 +83,24 @@ const artists = {
   },
 };
 
-const tabs = [
-  'Cifras',
-  'Letras',
-  'Tabs PRO',
-  'Baixo',
-  'Bateria',
-];
-
 export default function ArtistScreen({
   artistName = 'Nirvana',
   onBack,
   onOpenSong,
 }) {
-  const [activeTab, setActiveTab] = useState('Cifras');
   const [following, setFollowing] = useState(false);
 
   const artist = artists[artistName] || artists.Nirvana;
 
-  function getTypeName() {
-    if (activeTab === 'Cifras') {
-      return 'Cifra';
-    }
-
-    if (activeTab === 'Letras') {
-      return 'Letra';
-    }
-
-    if (activeTab === 'Tabs PRO') {
-      return 'Tab PRO';
-    }
-
-    if (activeTab === 'Baixo') {
-      return 'Tab de baixo';
-    }
-
-    return 'Tab de bateria';
-  }
-
-  function handleSongPress(song) {
-    if (activeTab === 'Cifras') {
-      onOpenSong(song, artist.name);
-    }
+  function openFirstSong() {
+    onOpenSong(artist.songs[0], artist.name);
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         style={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topBar}>
@@ -141,11 +111,11 @@ export default function ArtistScreen({
             <Text style={styles.backText}>‹</Text>
           </Pressable>
 
-          <Text style={styles.topTitle}>Artista</Text>
+          <Text style={styles.topTitle}>
+            Artista
+          </Text>
 
-          <Pressable style={styles.optionsButton}>
-            <Text style={styles.optionsText}>•••</Text>
-          </Pressable>
+          <View style={styles.headerSpace} />
         </View>
 
         <View style={styles.artistHeader}>
@@ -184,7 +154,8 @@ export default function ArtistScreen({
               <Text
                 style={[
                   styles.followButtonText,
-                  following && styles.followingButtonText,
+                  following &&
+                    styles.followingButtonText,
                 ]}
               >
                 {following ? 'Seguindo' : 'Seguir'}
@@ -193,66 +164,48 @@ export default function ArtistScreen({
 
             <Pressable
               style={styles.playButton}
-              onPress={() =>
-                handleSongPress(artist.songs[0])
-              }
+              onPress={openFirstSong}
             >
-              <Text style={styles.playButtonText}>▶</Text>
+              <Text style={styles.playButtonIcon}>
+                ▶
+              </Text>
+
+              <Text style={styles.playButtonText}>
+                Tocar
+              </Text>
             </Pressable>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>
-          Músicas populares
-        </Text>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>
+              Cifras
+            </Text>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabs}
-        >
-          {tabs.map((tab) => {
-            const selected = activeTab === tab;
+            <Text style={styles.sectionSubtitle}>
+              Músicas populares de {artist.name}
+            </Text>
+          </View>
 
-            return (
-              <Pressable
-                key={tab}
-                style={[
-                  styles.tab,
-                  selected && styles.activeTab,
-                ]}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text
-                  style={
-                    selected
-                      ? styles.activeTabText
-                      : styles.tabText
-                  }
-                >
-                  {tab}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <View style={styles.selectedType}>
-          <Text style={styles.selectedTypeLabel}>
-            Exibindo
-          </Text>
-
-          <Text style={styles.selectedTypeValue}>
-            {activeTab}
-          </Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>
+              {artist.songs.length}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.songList}>
           {artist.songs.map((song, index) => (
             <Pressable
               key={song}
-              style={styles.song}
-              onPress={() => handleSongPress(song)}
+              style={({ pressed }) => [
+                styles.song,
+                pressed && styles.songPressed,
+              ]}
+              onPress={() =>
+                onOpenSong(song, artist.name)
+              }
             >
               <Text style={styles.songNumber}>
                 {String(index + 1).padStart(2, '0')}
@@ -260,7 +213,7 @@ export default function ArtistScreen({
 
               <View style={styles.songIcon}>
                 <Text style={styles.songIconText}>
-                  {activeTab === 'Letras' ? '≡' : '♪'}
+                  ♪
                 </Text>
               </View>
 
@@ -273,28 +226,33 @@ export default function ArtistScreen({
                 </Text>
 
                 <Text style={styles.songType}>
-                  {artist.name} • {getTypeName()}
+                  {artist.name} • Cifra
                 </Text>
               </View>
 
-              <Text style={styles.arrow}>›</Text>
+              <Text style={styles.arrow}>
+                ›
+              </Text>
             </Pressable>
           ))}
         </View>
 
-        {activeTab !== 'Cifras' && (
-          <View style={styles.infoCard}>
-            <Text style={styles.infoCardTitle}>
-              {activeTab}
+        <View style={styles.tipCard}>
+          <View style={styles.tipIcon}>
+            <Text style={styles.tipIconText}>♪</Text>
+          </View>
+
+          <View style={styles.tipInfo}>
+            <Text style={styles.tipTitle}>
+              Escolha uma música
             </Text>
 
-            <Text style={styles.infoCardText}>
-              Você está visualizando as opções de{' '}
-              {activeTab.toLowerCase()} disponíveis para{' '}
-              {artist.name}.
+            <Text style={styles.tipText}>
+              Toque em uma das cifras acima para abrir
+              os acordes e ferramentas.
             </Text>
           </View>
-        )}
+        </View>
 
         <View style={styles.bottomSpace} />
       </ScrollView>
@@ -311,11 +269,14 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 1,
+  },
+
+  scrollContent: {
     paddingHorizontal: 20,
   },
 
   topBar: {
-    height: 54,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -335,31 +296,24 @@ const styles = StyleSheet.create({
 
   topTitle: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
 
-  optionsButton: {
+  headerSpace: {
     width: 44,
-    height: 44,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-
-  optionsText: {
-    color: colors.textSecondary,
-    fontSize: 16,
   },
 
   artistHeader: {
     alignItems: 'center',
-    paddingTop: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
 
   artistImage: {
-    width: 126,
-    height: 126,
-    borderRadius: 63,
+    width: 112,
+    height: 112,
+    borderRadius: 56,
     backgroundColor: colors.primarySoft,
     borderWidth: 1,
     borderColor: '#4b2c18',
@@ -369,19 +323,19 @@ const styles = StyleSheet.create({
 
   artistLogo: {
     color: colors.primary,
-    fontSize: 43,
+    fontSize: 39,
     fontWeight: '900',
   },
 
   smallLogo: {
-    fontSize: 25,
+    fontSize: 23,
   },
 
   artistName: {
     color: colors.text,
-    fontSize: 29,
+    fontSize: 28,
     fontWeight: '800',
-    marginTop: 18,
+    marginTop: 16,
     textAlign: 'center',
   },
 
@@ -389,27 +343,28 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
-    marginTop: 7,
+    marginTop: 6,
   },
 
   artistInfo: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: 12,
     marginTop: 6,
   },
 
   artistActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 19,
   },
 
   followButton: {
-    height: 40,
-    paddingHorizontal: 25,
-    borderRadius: 20,
+    height: 42,
+    paddingHorizontal: 24,
+    borderRadius: 21,
     borderWidth: 1,
     borderColor: colors.borderLight,
+    alignItems: 'center',
     justifyContent: 'center',
   },
 
@@ -420,7 +375,7 @@ const styles = StyleSheet.create({
 
   followButtonText: {
     color: colors.text,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
 
@@ -429,79 +384,71 @@ const styles = StyleSheet.create({
   },
 
   playButton: {
-    width: 42,
     height: 42,
+    paddingHorizontal: 19,
     borderRadius: 21,
     backgroundColor: colors.primary,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
+    marginLeft: 10,
+  },
+
+  playButtonIcon: {
+    color: colors.white,
+    fontSize: 11,
+    marginRight: 7,
   },
 
   playButtonText: {
     color: colors.white,
-    fontSize: 14,
-    marginLeft: 2,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 32,
+    marginBottom: 14,
   },
 
   sectionTitle: {
     color: colors.text,
     fontSize: 21,
     fontWeight: '800',
-    marginTop: 35,
-    marginBottom: 16,
   },
 
-  tabs: {
-    marginBottom: 15,
-  },
-
-  tab: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-
-  activeTab: {
-    backgroundColor: colors.text,
-    borderColor: colors.text,
-  },
-
-  tabText: {
+  sectionSubtitle: {
     color: colors.textSecondary,
-    fontSize: 13,
-  },
-
-  activeTabText: {
-    color: colors.textDark,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
-  selectedType: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-
-  selectedTypeLabel: {
-    color: colors.muted,
     fontSize: 12,
-    marginRight: 6,
+    marginTop: 4,
   },
 
-  selectedTypeValue: {
+  countBadge: {
+    minWidth: 31,
+    height: 31,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  countText: {
     color: colors.primary,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 
   songList: {
-    marginTop: 5,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    overflow: 'hidden',
   },
 
   song: {
@@ -512,17 +459,22 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
 
+  songPressed: {
+    opacity: 0.55,
+  },
+
   songNumber: {
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 11,
     width: 27,
+    fontWeight: '600',
   },
 
   songIcon: {
     width: 42,
     height: 42,
-    borderRadius: 10,
-    backgroundColor: colors.surface,
+    borderRadius: 11,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -531,10 +483,12 @@ const styles = StyleSheet.create({
   songIconText: {
     color: colors.primary,
     fontSize: 18,
+    fontWeight: '700',
   },
 
   songInfo: {
     flex: 1,
+    paddingRight: 8,
   },
 
   songTitle: {
@@ -545,36 +499,56 @@ const styles = StyleSheet.create({
 
   songType: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 4,
   },
 
   arrow: {
     color: colors.muted,
-    fontSize: 25,
-    paddingLeft: 10,
+    fontSize: 27,
   },
 
-  infoCard: {
+  tipCard: {
     backgroundColor: colors.surface,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: 15,
-    marginTop: 20,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 18,
   },
 
-  infoCardTitle: {
+  tipIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  tipIconText: {
+    color: colors.primary,
+    fontSize: 17,
+  },
+
+  tipInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  tipTitle: {
     color: colors.text,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
   },
 
-  infoCardText: {
+  tipText: {
     color: colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 5,
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 3,
   },
 
   bottomSpace: {

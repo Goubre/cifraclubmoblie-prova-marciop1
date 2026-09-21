@@ -17,73 +17,81 @@ export default function HomeScreen({
   onOpenArtist,
   onOpenSong,
 }) {
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedCategory, setSelectedCategory] =
+    useState('Todos');
 
   const categories = [
     'Todos',
-    'Rock',
-    'Pop',
-    'Sertanejo',
-    'MPB',
+    'Nirvana',
+    'Metallica',
+    "Guns N' Roses",
+    'RHCP',
+    'Foo Fighters',
   ];
 
   const songs = [
     {
       title: 'Come As You Are',
       artist: 'Nirvana',
-      genre: 'Rock',
+      category: 'Nirvana',
+    },
+    {
+      title: 'Smells Like Teen Spirit',
+      artist: 'Nirvana',
+      category: 'Nirvana',
     },
     {
       title: 'Nothing Else Matters',
       artist: 'Metallica',
-      genre: 'Rock',
+      category: 'Metallica',
+    },
+    {
+      title: 'Enter Sandman',
+      artist: 'Metallica',
+      category: 'Metallica',
     },
     {
       title: "Sweet Child O' Mine",
       artist: "Guns N' Roses",
-      genre: 'Rock',
+      category: "Guns N' Roses",
+    },
+    {
+      title: 'November Rain',
+      artist: "Guns N' Roses",
+      category: "Guns N' Roses",
     },
     {
       title: 'Californication',
       artist: 'Red Hot Chili Peppers',
-      genre: 'Rock',
+      category: 'RHCP',
     },
     {
-      title: 'Trevo',
-      artist: 'ANAVITÓRIA',
-      genre: 'Pop',
+      title: 'Under the Bridge',
+      artist: 'Red Hot Chili Peppers',
+      category: 'RHCP',
     },
     {
-      title: 'Velha Infância',
-      artist: 'Tribalistas',
-      genre: 'MPB',
+      title: 'Everlong',
+      artist: 'Foo Fighters',
+      category: 'Foo Fighters',
     },
     {
-      title: 'Evidências',
-      artist: 'Chitãozinho & Xororó',
-      genre: 'Sertanejo',
+      title: 'The Pretender',
+      artist: 'Foo Fighters',
+      category: 'Foo Fighters',
     },
   ];
 
   const filteredSongs =
     selectedCategory === 'Todos'
-      ? songs.slice(0, 4)
+      ? songs.slice(0, 5)
       : songs.filter(
-          (song) => song.genre === selectedCategory
+          (song) =>
+            song.category === selectedCategory
         );
 
-  function handleSongPress(song) {
-    if (
-      song.artist === 'Nirvana' ||
-      song.artist === 'Metallica' ||
-      song.artist === "Guns N' Roses" ||
-      song.artist === 'Red Hot Chili Peppers'
-    ) {
-      onOpenSong?.(song.title, song.artist);
-      return;
-    }
-
-    onNavigate('Busca');
+  function openSong(song) {
+    onOpenSong?.(song.title, song.artist);
   }
 
   return (
@@ -96,10 +104,14 @@ export default function HomeScreen({
         <View style={styles.header}>
           <View>
             <View style={styles.logoRow}>
-              <Text style={styles.logo}>cifraclub</Text>
+              <Text style={styles.logo}>
+                cifraclub
+              </Text>
 
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>30 anos</Text>
+                <Text style={styles.badgeText}>
+                  MOBILE
+                </Text>
               </View>
             </View>
 
@@ -126,24 +138,26 @@ export default function HomeScreen({
           style={styles.categoryScroll}
         >
           {categories.map((category) => {
-            const active = selectedCategory === category;
+            const active =
+              selectedCategory === category;
 
             return (
               <Pressable
                 key={category}
-                style={
-                  active
-                    ? styles.categoryActive
-                    : styles.category
+                style={[
+                  styles.category,
+                  active && styles.categoryActive,
+                ]}
+                onPress={() =>
+                  setSelectedCategory(category)
                 }
-                onPress={() => setSelectedCategory(category)}
               >
                 <Text
-                  style={
-                    active
-                      ? styles.categoryActiveText
-                      : styles.categoryText
-                  }
+                  style={[
+                    styles.categoryText,
+                    active &&
+                      styles.categoryActiveText,
+                  ]}
                 >
                   {category}
                 </Text>
@@ -160,7 +174,9 @@ export default function HomeScreen({
               </Text>
             </View>
 
-            <Text style={styles.highlightMusic}>♫</Text>
+            <Text style={styles.highlightMusic}>
+              ♫
+            </Text>
           </View>
 
           <View style={styles.highlightContent}>
@@ -173,7 +189,9 @@ export default function HomeScreen({
             </Text>
 
             <Pressable
-              onPress={() => onOpenArtist?.('Nirvana')}
+              onPress={() =>
+                onOpenArtist?.('Nirvana')
+              }
             >
               <Text style={styles.highlightArtist}>
                 Nirvana
@@ -183,12 +201,19 @@ export default function HomeScreen({
             <Pressable
               style={styles.highlightButton}
               onPress={() =>
-                onOpenSong?.('Come As You Are', 'Nirvana')
+                onOpenSong?.(
+                  'Come As You Are',
+                  'Nirvana'
+                )
               }
             >
-              <Text style={styles.playIcon}>▶</Text>
+              <Text style={styles.playIcon}>
+                ▶
+              </Text>
 
-              <Text style={styles.highlightButtonText}>
+              <Text
+                style={styles.highlightButtonText}
+              >
                 Abrir cifra
               </Text>
             </Pressable>
@@ -202,13 +227,21 @@ export default function HomeScreen({
         </View>
 
         <Pressable
-          style={styles.recentCard}
+          style={({ pressed }) => [
+            styles.recentCard,
+            pressed && styles.pressed,
+          ]}
           onPress={() =>
-            onOpenSong?.('Come As You Are', 'Nirvana')
+            onOpenSong?.(
+              'Come As You Are',
+              'Nirvana'
+            )
           }
         >
           <View style={styles.songCover}>
-            <Text style={styles.coverText}>♪</Text>
+            <Text style={styles.coverText}>
+              ♪
+            </Text>
           </View>
 
           <View style={styles.songInfo}>
@@ -237,8 +270,12 @@ export default function HomeScreen({
             )}
           </View>
 
-          <Pressable onPress={() => onNavigate('Busca')}>
-            <Text style={styles.seeAll}>Ver mais</Text>
+          <Pressable
+            onPress={() => onNavigate('Busca')}
+          >
+            <Text style={styles.seeAll}>
+              Ver mais
+            </Text>
           </Pressable>
         </View>
 
@@ -246,15 +283,23 @@ export default function HomeScreen({
           {filteredSongs.map((song, index) => (
             <Pressable
               key={`${song.title}-${song.artist}`}
-              style={styles.trendingSong}
-              onPress={() => handleSongPress(song)}
+              style={({ pressed }) => [
+                styles.trendingSong,
+                pressed && styles.pressed,
+              ]}
+              onPress={() => openSong(song)}
             >
               <Text style={styles.songNumber}>
-                {String(index + 1).padStart(2, '0')}
+                {String(index + 1).padStart(
+                  2,
+                  '0'
+                )}
               </Text>
 
               <View style={styles.trendingCover}>
-                <Text style={styles.trendingCoverText}>
+                <Text
+                  style={styles.trendingCoverText}
+                >
                   ♪
                 </Text>
               </View>
@@ -284,6 +329,14 @@ export default function HomeScreen({
           <Text style={styles.sectionTitle}>
             Artistas populares
           </Text>
+
+          <Pressable
+            onPress={() => onNavigate('Busca')}
+          >
+            <Text style={styles.seeAll}>
+              Ver todos
+            </Text>
+          </Pressable>
         </View>
 
         <ScrollView
@@ -291,25 +344,52 @@ export default function HomeScreen({
           showsHorizontalScrollIndicator={false}
         >
           {[
-            { name: 'Nirvana', initials: 'N' },
-            { name: 'Metallica', initials: 'M' },
-            { name: "Guns N' Roses", initials: 'GNR' },
-            { name: 'Foo Fighters', initials: 'FF' },
+            {
+              name: 'Nirvana',
+              initials: 'N',
+            },
+            {
+              name: 'Metallica',
+              initials: 'M',
+            },
+            {
+              name: "Guns N' Roses",
+              initials: 'GNR',
+            },
+            {
+              name: 'Red Hot Chili Peppers',
+              initials: 'RHCP',
+            },
+            {
+              name: 'Foo Fighters',
+              initials: 'FF',
+            },
           ].map((artist) => (
             <Pressable
               key={artist.name}
-              style={styles.artistCard}
-              onPress={() => onOpenArtist?.(artist.name)}
+              style={({ pressed }) => [
+                styles.artistCard,
+                pressed && styles.pressed,
+              ]}
+              onPress={() =>
+                onOpenArtist?.(artist.name)
+              }
             >
               <View style={styles.artistCircle}>
-                <Text style={styles.artistInitials}>
+                <Text
+                  style={[
+                    styles.artistInitials,
+                    artist.initials.length > 2 &&
+                      styles.smallInitials,
+                  ]}
+                >
                   {artist.initials}
                 </Text>
               </View>
 
               <Text
                 style={styles.artistCardName}
-                numberOfLines={1}
+                numberOfLines={2}
               >
                 {artist.name}
               </Text>
@@ -374,7 +454,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: colors.white,
     fontWeight: '800',
-    fontSize: 10,
+    fontSize: 9,
   },
 
   welcome: {
@@ -413,30 +493,26 @@ const styles = StyleSheet.create({
 
   category: {
     backgroundColor: colors.surface,
-    paddingHorizontal: 17,
+    paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 20,
-    marginRight: 9,
+    marginRight: 8,
     borderWidth: 1,
     borderColor: colors.border,
   },
 
   categoryActive: {
     backgroundColor: colors.text,
-    paddingHorizontal: 17,
-    paddingVertical: 9,
-    borderRadius: 20,
-    marginRight: 9,
+    borderColor: colors.text,
   },
 
   categoryText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
   },
 
   categoryActiveText: {
     color: colors.textDark,
-    fontSize: 14,
     fontWeight: '700',
   },
 
@@ -488,14 +564,14 @@ const styles = StyleSheet.create({
 
   highlightTitle: {
     color: colors.text,
-    fontSize: 29,
+    fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.6,
   },
 
   highlightArtist: {
     color: colors.primary,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     marginTop: 3,
   },
@@ -560,6 +636,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 
+  pressed: {
+    opacity: 0.6,
+  },
+
   songCover: {
     width: 52,
     height: 52,
@@ -588,7 +668,7 @@ const styles = StyleSheet.create({
 
   artist: {
     color: colors.textSecondary,
-    fontSize: 13,
+    fontSize: 12,
     marginTop: 4,
   },
 
@@ -604,6 +684,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
   },
 
   trendingSong: {
@@ -625,7 +706,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 10,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -643,8 +724,8 @@ const styles = StyleSheet.create({
   },
 
   artistCard: {
-    width: 92,
-    marginRight: 14,
+    width: 96,
+    marginRight: 13,
     alignItems: 'center',
   },
 
@@ -665,13 +746,18 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
+  smallInitials: {
+    fontSize: 13,
+  },
+
   artistCardName: {
     color: colors.text,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     marginTop: 9,
-    width: 90,
+    width: 94,
     textAlign: 'center',
+    lineHeight: 15,
   },
 
   bottomSpace: {
