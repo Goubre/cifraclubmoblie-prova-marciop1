@@ -9,7 +9,6 @@ import {
   StatusBar,
 } from 'react-native';
 
-import BottomNav from '../components/BottomNav';
 import { colors } from '../theme/colors';
 
 export default function AcademyScreen({ onNavigate }) {
@@ -136,10 +135,6 @@ export default function AcademyScreen({ onNavigate }) {
         <View style={styles.bottomSpace} />
       </ScrollView>
 
-      <BottomNav
-        active="Academy"
-        onNavigate={onNavigate}
-      />
     </SafeAreaView>
   );
 }
