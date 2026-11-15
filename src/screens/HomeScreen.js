@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   Text,
@@ -7,9 +7,16 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Linking,
+  RefreshControl,
 } from 'react-native';
 
 import { colors } from '../theme/colors';
+import { api } from '../services/api';
+import { withCache } from '../services/cache';
 
 export default function HomeScreen({
   onNavigate,
@@ -18,6 +25,44 @@ export default function HomeScreen({
 }) {
   const [selectedCategory, setSelectedCategory] =
     useState('Todos');
+  const [featuredTracks, setFeaturedTracks] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [featuredRefreshing, setFeaturedRefreshing] = useState(false);
+  const [featuredError, setFeaturedError] = useState('');
+  const featuredRequestRef = useRef(null);
+
+  const loadFeaturedTracks = useCallback(async (refresh = false) => {
+    const controller = new AbortController();
+    featuredRequestRef.current?.abort();
+    featuredRequestRef.current = controller;
+    if (refresh) setFeaturedRefreshing(true);
+    else setFeaturedLoading(true);
+    setFeaturedError('');
+
+    try {
+      const tracks = await withCache(
+        'app:v1:music-featured-rock',
+        () => api.searchMusic('rock', { limit: 12, signal: controller.signal }),
+        refresh ? 0 : undefined,
+      );
+      if (!controller.signal.aborted) setFeaturedTracks(Array.isArray(tracks) ? tracks : []);
+    } catch (error) {
+      if (!controller.signal.aborted) setFeaturedError(error.message || 'Não foi possível carregar as músicas.');
+    } finally {
+      if (!controller.signal.aborted) {
+        setFeaturedLoading(false);
+        setFeaturedRefreshing(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => loadFeaturedTracks(), 0);
+    return () => {
+      clearTimeout(timer);
+      featuredRequestRef.current?.abort();
+    };
+  }, [loadFeaturedTracks]);
 
   const categories = [
     'Todos',
@@ -99,6 +144,7 @@ export default function HomeScreen({
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={featuredRefreshing} onRefresh={() => loadFeaturedTracks(true)} tintColor={colors.primary} />}
       >
         <View style={styles.header}>
           <View>
@@ -255,6 +301,61 @@ export default function HomeScreen({
 
           <Text style={styles.arrow}>›</Text>
         </Pressable>
+
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Capas em destaque</Text>
+            <Text style={styles.musicApiSubtitle} numberOfLines={1}>Músicas do catálogo do iTunes</Text>
+          </View>
+          <Pressable onPress={() => onNavigate('Busca')}>
+            <Text style={styles.seeAll}>Buscar</Text>
+          </Pressable>
+        </View>
+
+        {featuredLoading ? (
+          <View style={styles.musicApiState}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={styles.musicApiStateText}>Carregando músicas...</Text>
+          </View>
+        ) : featuredError ? (
+          <View style={styles.musicApiState}>
+            <Text style={styles.musicApiStateText}>{featuredError}</Text>
+            <Pressable style={styles.retryButton} onPress={() => loadFeaturedTracks()}>
+              <Text style={styles.retryButtonText}>Tentar novamente</Text>
+            </Pressable>
+          </View>
+        ) : featuredTracks.length === 0 ? (
+          <Text style={styles.musicApiStateText}>Nenhuma música encontrada. Puxe para atualizar.</Text>
+        ) : (
+          <FlatList
+            horizontal
+            data={featuredTracks}
+            keyExtractor={(item) => item.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.musicCards}
+            renderItem={({ item }) => (
+              <View style={styles.musicCard}>
+                <Pressable
+                  onPress={() => onOpenSong?.(item.song, item.artist, item.artworkUrl, item.storeUrl)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Abrir cifra de ${item.song}, ${item.artist}`}
+                >
+                  <Image source={{ uri: item.artworkUrl }} style={styles.musicArtwork} />
+                  <Text style={styles.musicCardTitle} numberOfLines={1}>{item.song}</Text>
+                  <Text style={styles.musicCardArtist} numberOfLines={1}>{item.artist}</Text>
+                </Pressable>
+                {!!item.storeUrl && (
+                  <Pressable onPress={() => Linking.openURL(item.storeUrl)} style={styles.storeLink}>
+                    <Text style={styles.storeLinkText}>Abrir no Apple Music</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+          />
+        )}
+        {!featuredLoading && !featuredError && featuredTracks.length > 0 && (
+          <Text style={styles.musicAttribution}>Capas e dados fornecidos pelo iTunes.</Text>
+        )}
 
         <View style={styles.sectionHeader}>
           <View>
@@ -613,6 +714,94 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
+  },
+
+  musicApiSubtitle: {
+    flex: 1,
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginTop: 4,
+  },
+
+  musicApiState: {
+    minHeight: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+  },
+
+  musicApiStateText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 20,
+  },
+
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 18,
+    marginTop: 10,
+  },
+
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  musicCards: {
+    paddingRight: 8,
+  },
+
+  musicCard: {
+    width: 148,
+    padding: 10,
+    marginRight: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 16,
+  },
+
+  musicArtwork: {
+    width: 126,
+    height: 126,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceLight,
+  },
+
+  musicCardTitle: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 9,
+  },
+
+  musicCardArtist: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginTop: 3,
+  },
+
+  storeLink: {
+    paddingVertical: 7,
+  },
+
+  storeLinkText: {
+    color: colors.primary,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  musicAttribution: {
+    color: colors.muted,
+    fontSize: 10,
+    marginTop: 8,
   },
 
   seeAll: {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import {
   View,
@@ -9,9 +9,15 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
+  ActivityIndicator,
+  Image,
+  Linking,
+  RefreshControl,
 } from 'react-native';
 
 import { colors } from '../theme/colors';
+import { api } from '../services/api';
+import { withCache } from '../services/cache';
 
 export default function SearchScreen({
   onNavigate,
@@ -19,6 +25,12 @@ export default function SearchScreen({
   onOpenSong,
 }) {
   const [search, setSearch] = useState('');
+  const [musicResults, setMusicResults] = useState([]);
+  const [musicLoading, setMusicLoading] = useState(false);
+  const [musicRefreshing, setMusicRefreshing] = useState(false);
+  const [musicError, setMusicError] = useState('');
+  const requestRef = useRef(null);
+  const lastRequestAtRef = useRef(0);
 
   const results = [
     {
@@ -170,14 +182,71 @@ export default function SearchScreen({
   const filteredResults = search.trim()
     ? results.filter(
         (item) =>
+          item.type === 'artist' && (
           item.title
             .toLowerCase()
             .includes(search.toLowerCase()) ||
           item.subtitle
             .toLowerCase()
             .includes(search.toLowerCase())
+          )
       )
     : [];
+
+  const loadMusic = useCallback(async (term, refresh = false) => {
+    const controller = new AbortController();
+    requestRef.current?.abort();
+    requestRef.current = controller;
+    lastRequestAtRef.current = Date.now();
+    if (refresh) setMusicRefreshing(true);
+    else setMusicLoading(true);
+    setMusicError('');
+
+    try {
+      const tracks = await withCache(
+        `app:v1:itunes-search:${term.trim().toLowerCase()}`,
+        () => api.searchMusic(term, { signal: controller.signal }),
+        refresh ? 0 : undefined,
+      );
+      if (!controller.signal.aborted) setMusicResults(Array.isArray(tracks) ? tracks : []);
+    } catch (error) {
+      if (error.name !== 'AbortError' && !controller.signal.aborted) {
+        setMusicResults([]);
+        setMusicError(error.message || 'Não foi possível buscar músicas.');
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setMusicLoading(false);
+        setMusicRefreshing(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const term = search.trim();
+    if (term.length < 2) {
+      const timer = setTimeout(() => {
+        requestRef.current?.abort();
+        setMusicResults([]);
+        setMusicLoading(false);
+        setMusicError('');
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+
+    const elapsed = Date.now() - lastRequestAtRef.current;
+    const delay = Math.max(650, 3000 - elapsed);
+    const timer = setTimeout(() => {
+      setMusicLoading(true);
+      setMusicResults([]);
+      setMusicError('');
+      loadMusic(term);
+    }, delay);
+    return () => {
+      clearTimeout(timer);
+      requestRef.current?.abort();
+    };
+  }, [loadMusic, search]);
 
   function handleResultPress(item) {
     if (item.type === 'artist') {
@@ -196,6 +265,7 @@ export default function SearchScreen({
         style={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={musicRefreshing} onRefresh={() => search.trim().length >= 2 && loadMusic(search.trim(), true)} tintColor={colors.primary} />}
       >
         <View style={styles.header}>
           <Text style={styles.title}>Busca</Text>
@@ -221,7 +291,7 @@ export default function SearchScreen({
           />
 
           {search.length > 0 && (
-            <Pressable onPress={() => setSearch('')}>
+            <Pressable onPress={() => setSearch('')} accessibilityRole="button" accessibilityLabel="Limpar busca">
               <Text style={styles.clearButton}>×</Text>
             </Pressable>
           )}
@@ -281,46 +351,74 @@ export default function SearchScreen({
           </>
         ) : (
           <View style={styles.results}>
-            <Text style={styles.sectionTitle}>Resultados</Text>
+            <Text style={styles.sectionTitle}>Resultados da busca</Text>
 
-            {filteredResults.length > 0 ? (
-              filteredResults.map((item) => (
-                <Pressable
-                  key={item.id}
-                  style={styles.resultItem}
-                  onPress={() => handleResultPress(item)}
-                >
-                  <View style={styles.resultIcon}>
-                    <Text style={styles.resultIconText}>
-                      {item.type === 'artist' ? '♫' : '♪'}
-                    </Text>
-                  </View>
+            {filteredResults.map((item) => (
+              <Pressable key={`artist-${item.id}`} style={styles.resultItem} onPress={() => handleResultPress(item)}>
+                <View style={styles.resultIcon}><Text style={styles.resultIconText}>♫</Text></View>
+                <View style={styles.resultInfo}>
+                  <Text style={styles.resultTitle}>{item.title}</Text>
+                  <Text style={styles.resultSubtitle}>Artista</Text>
+                </View>
+                <Text style={styles.arrow}>›</Text>
+              </Pressable>
+            ))}
 
-                  <View style={styles.resultInfo}>
-                    <Text style={styles.resultTitle}>
-                      {item.title}
-                    </Text>
+            {musicLoading && (
+              <View style={styles.apiState}>
+                <ActivityIndicator color={colors.primary} />
+                <Text style={styles.apiStateText}>Buscando no catálogo musical...</Text>
+              </View>
+            )}
 
-                    <Text style={styles.resultSubtitle}>
-                      {item.subtitle}
-                    </Text>
-                  </View>
-
-                  <Text style={styles.arrow}>›</Text>
+            {!!musicError && (
+              <View style={styles.empty}>
+                <Text style={styles.noResults}>{musicError}</Text>
+                <Pressable style={styles.retryButton} onPress={() => loadMusic(search.trim())}>
+                  <Text style={styles.retryButtonText}>Tentar novamente</Text>
                 </Pressable>
-              ))
-            ) : (
+              </View>
+            )}
+
+            {search.trim().length === 1 && filteredResults.length === 0 && (
+              <View style={styles.empty}>
+                <Text style={styles.noResults}>Digite pelo menos duas letras para pesquisar.</Text>
+              </View>
+            )}
+
+            {!musicLoading && !musicError && musicResults.length === 0 && filteredResults.length === 0 && search.trim().length >= 2 && (
               <View style={styles.empty}>
                 <Text style={styles.emptyIcon}>⌕</Text>
-
-                <Text style={styles.emptyTitle}>
-                  Nenhum resultado
-                </Text>
-
-                <Text style={styles.noResults}>
-                  Tente pesquisar outro artista ou música.
-                </Text>
+                <Text style={styles.emptyTitle}>Nenhuma música encontrada</Text>
+                <Text style={styles.noResults}>Tente pesquisar outro artista ou música.</Text>
               </View>
+            )}
+
+            {musicResults.map((item) => (
+              <View key={item.id} style={styles.musicResult}>
+                <Pressable
+                  style={styles.musicResultMain}
+                  onPress={() => onOpenSong(item.song, item.artist, item.artworkUrl, item.storeUrl)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Abrir cifra de ${item.song}, ${item.artist}`}
+                >
+                  <Image source={{ uri: item.artworkUrl }} style={styles.musicResultArtwork} />
+                  <View style={styles.resultInfo}>
+                    <Text style={styles.resultTitle} numberOfLines={1}>{item.song}</Text>
+                    <Text style={styles.resultSubtitle} numberOfLines={1}>{item.artist}</Text>
+                    {!!item.album && <Text style={styles.albumName} numberOfLines={1}>{item.album}</Text>}
+                  </View>
+                  <Text style={styles.arrow}>›</Text>
+                </Pressable>
+                {!!item.storeUrl && (
+                  <Pressable style={styles.appleLink} onPress={() => Linking.openURL(item.storeUrl)}>
+                    <Text style={styles.appleLinkText}>Abrir no Apple Music</Text>
+                  </Pressable>
+                )}
+              </View>
+            ))}
+            {!musicLoading && musicResults.length > 0 && (
+              <Text style={styles.attribution}>Capas e dados fornecidos pelo iTunes.</Text>
             )}
           </View>
         )}
@@ -465,6 +563,80 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+
+  musicResult: {
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 15,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  musicResultMain: {
+    minHeight: 68,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  musicResultArtwork: {
+    width: 58,
+    height: 58,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceLight,
+    marginRight: 12,
+  },
+
+  albumName: {
+    color: colors.muted,
+    fontSize: 11,
+    marginTop: 3,
+  },
+
+  appleLink: {
+    alignSelf: 'flex-end',
+    paddingTop: 9,
+    paddingHorizontal: 4,
+  },
+
+  appleLinkText: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  attribution: {
+    color: colors.muted,
+    fontSize: 10,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+
+  apiState: {
+    alignItems: 'center',
+    paddingVertical: 22,
+  },
+
+  apiStateText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 8,
+  },
+
+  retryButton: {
+    alignSelf: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
+    marginTop: 14,
+  },
+
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '700',
   },
 
   resultIcon: {

@@ -29,6 +29,7 @@ O aplicativo tem 15 rotas: Início, Listas, Busca, Academy, Mais, Comunidade, Ar
 ## Funcionalidades
 
 - Busca e navegação por músicas e artistas
+- Busca musical ao vivo com capas de álbum, lançamentos em destaque e links para Apple Music
 - Visualização de cifras, alteração de tom, modo simplificado e rolagem automática
 - Criação de listas e adição de cifras às listas
 - Favoritos salvos entre sessões
@@ -39,7 +40,7 @@ O aplicativo tem 15 rotas: Início, Listas, Busca, Academy, Mais, Comunidade, Ar
 
 ## API e armazenamento
 
-Os perfis da comunidade são obtidos da API pública JSONPlaceholder (`/users` e `/users/:id`). Listas, favoritos, preferência de tema e cache da API são armazenados localmente com AsyncStorage.
+Os perfis da comunidade são obtidos da API pública JSONPlaceholder (`/users` e `/users/:id`). A busca e os destaques musicais usam a iTunes Search API para carregar faixas, capas e links do catálogo brasileiro. Listas, favoritos, preferência de tema e cache de respostas são armazenados localmente com AsyncStorage.
 
 ## Verificações
 

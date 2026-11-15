@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, Pressable, SafeAreaView, StyleSheet, Text } from 'react-native';
+import { FlatList, Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { usePersistedState } from '../../hooks/usePersistedState';
 import { initialLists } from '../../data/initialLists';
@@ -23,9 +23,12 @@ export default function PlaylistRoute() {
           contentContainerStyle={styles.list}
           ListEmptyComponent={<Text style={styles.empty}>Esta lista ainda não tem cifras. Abra uma música e toque em “Adicionar à lista”.</Text>}
           renderItem={({ item }) => (
-            <Pressable style={styles.row} onPress={() => router.push({ pathname: '/musica', params: { song: item.song, artist: item.artist } })}>
-              <Text style={styles.song}>{item.song}</Text>
-              <Text style={styles.artist}>{item.artist}</Text>
+            <Pressable style={styles.row} onPress={() => router.push({ pathname: '/musica', params: { song: item.song, artist: item.artist, artworkUrl: item.artworkUrl, storeUrl: item.storeUrl } })}>
+              {item.artworkUrl ? <Image source={{ uri: item.artworkUrl }} style={styles.artwork} /> : null}
+              <View style={styles.info}>
+                <Text style={styles.song}>{item.song}</Text>
+                <Text style={styles.artist}>{item.artist}</Text>
+              </View>
             </Pressable>
           )}
         />
@@ -39,7 +42,9 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 25, fontWeight: '800' },
   subtitle: { color: colors.textSecondary, fontSize: 12, marginTop: 5, marginBottom: 16 },
   list: { flexGrow: 1 },
-  row: { padding: 15, borderRadius: 12, backgroundColor: colors.surface, marginBottom: 9 },
+  row: { minHeight: 78, flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, backgroundColor: colors.surface, marginBottom: 9 },
+  artwork: { width: 54, height: 54, borderRadius: 9, marginRight: 12 },
+  info: { flex: 1 },
   song: { color: colors.text, fontWeight: '700', fontSize: 15 },
   artist: { color: colors.textSecondary, marginTop: 4 },
   empty: { color: colors.textSecondary, fontSize: 13, lineHeight: 20, marginTop: 22 },

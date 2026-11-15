@@ -9,6 +9,8 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
+  Image,
+  Linking,
 } from 'react-native';
 
 import { colors } from '../theme/colors';
@@ -570,7 +572,10 @@ export default function SongScreen({
   onBack,
   songName = 'Come As You Are',
   artistName = 'Nirvana',
+  artworkUrl = '',
+  storeUrl = '',
 }) {
+  const hasLocalChord = Boolean(songData[songName]);
   const song = songData[songName] || fallbackSong;
 
   const [transpose, setTranspose] = useState(0);
@@ -596,7 +601,7 @@ export default function SongScreen({
         const exists = current.some((item) => item.song === songName && item.artist === artistName);
         return exists
           ? current.filter((item) => item.song !== songName || item.artist !== artistName)
-          : [...current, { song: songName, artist: artistName }];
+          : [...current, { song: songName, artist: artistName, artworkUrl, storeUrl }];
       });
     } catch {
       await reloadFavorites();
@@ -704,6 +709,22 @@ export default function SongScreen({
         scrollEventThrottle={16}
       >
         <View style={styles.songHeader}>
+          {!!artworkUrl && (
+            <View style={styles.albumArtworkPanel}>
+              <Image source={{ uri: artworkUrl }} style={styles.albumArtwork} />
+              <View style={styles.albumArtworkInfo}>
+                <Text style={styles.albumArtworkLabel}>CAPA DO LANÇAMENTO</Text>
+                <Text style={styles.albumArtworkTitle} numberOfLines={2}>{songName}</Text>
+                <Text style={styles.albumArtworkArtist} numberOfLines={1}>{artistName}</Text>
+                {!!storeUrl && (
+                  <Pressable style={styles.albumStoreLink} onPress={() => Linking.openURL(storeUrl)}>
+                    <Text style={styles.albumStoreLinkText}>Ver no Apple Music ↗</Text>
+                  </Pressable>
+                )}
+                <Text style={styles.albumAttribution}>Capa e dados fornecidos pelo iTunes.</Text>
+              </View>
+            </View>
+          )}
           <Text style={styles.songTitle}>
             {songName}
           </Text>
@@ -715,17 +736,15 @@ export default function SongScreen({
           <View style={styles.songInfoRow}>
             <View style={styles.infoBadge}>
               <Text style={styles.infoBadgeText}>
-                CIFRA
+                {hasLocalChord ? 'CIFRA' : 'SEM CIFRA'}
               </Text>
             </View>
 
-            <Text style={styles.songInfoText}>
-              Tom: {currentTone}
-            </Text>
+            {hasLocalChord && <Text style={styles.songInfoText}>Tom: {currentTone}</Text>}
           </View>
         </View>
 
-        <View style={styles.controls}>
+        {hasLocalChord ? <View style={styles.controls}>
           <View style={styles.toneControl}>
             <Text style={styles.controlLabel}>
               Tom
@@ -796,11 +815,20 @@ export default function SongScreen({
 
           <Pressable
             style={styles.controlButton}
-            onPress={() => router.push({ pathname: '/adicionar-lista', params: { song: songName, artist: artistName } })}
+            onPress={() => router.push({ pathname: '/adicionar-lista', params: { song: songName, artist: artistName, artworkUrl, storeUrl } })}
           >
             <Text style={styles.controlButtonText}>Adicionar à lista</Text>
           </Pressable>
-        </View>
+        </View> : (
+          <View style={styles.controls}>
+            <Pressable
+              style={styles.controlButton}
+              onPress={() => router.push({ pathname: '/adicionar-lista', params: { song: songName, artist: artistName, artworkUrl, storeUrl } })}
+            >
+              <Text style={styles.controlButtonText}>Adicionar à lista</Text>
+            </Pressable>
+          </View>
+        )}
 
         {!!favoriteError && <View style={styles.message}><Text style={styles.messageText}>{favoriteError}</Text></View>}
 
@@ -812,6 +840,7 @@ export default function SongScreen({
           </View>
         )}
 
+        {hasLocalChord ? <>
         <View style={styles.chordsCard}>
           <Text style={styles.chordsTitle}>
             Acordes usados
@@ -886,6 +915,14 @@ export default function SongScreen({
             rolagem do aplicativo.
           </Text>
         </View>
+        </> : (
+          <View style={styles.missingChordCard}>
+            <Text style={styles.missingChordTitle}>Cifra ainda não cadastrada</Text>
+            <Text style={styles.missingChordText}>
+              As capas e informações musicais vieram da API. Esta música ainda não tem cifra demonstrativa cadastrada no aplicativo.
+            </Text>
+          </View>
+        )}
 
         <View style={styles.bottomSpace} />
       </ScrollView>
@@ -975,6 +1012,65 @@ const styles = StyleSheet.create({
 
   songHeader: {
     marginBottom: 22,
+  },
+
+  albumArtworkPanel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    marginBottom: 18,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  albumArtwork: {
+    width: 104,
+    height: 104,
+    borderRadius: 13,
+    backgroundColor: colors.surfaceLight,
+    marginRight: 14,
+  },
+
+  albumArtworkInfo: {
+    flex: 1,
+  },
+
+  albumArtworkLabel: {
+    color: colors.primary,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.7,
+  },
+
+  albumArtworkTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 6,
+  },
+
+  albumArtworkArtist: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  albumStoreLink: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+  },
+
+  albumStoreLinkText: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  albumAttribution: {
+    color: colors.muted,
+    fontSize: 9,
   },
 
   songTitle: {
@@ -1106,6 +1202,28 @@ const styles = StyleSheet.create({
   chordsCard: {
     marginTop: 5,
     marginBottom: 10,
+  },
+
+  missingChordCard: {
+    padding: 18,
+    marginTop: 4,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  missingChordTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+
+  missingChordText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 8,
   },
 
   chordsTitle: {
