@@ -13,6 +13,7 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="artista" options={{ title: 'Artista' }} />
       <Stack.Screen name="musica" options={{ title: 'Cifra' }} />
+      <Stack.Screen name="adicionar-lista" options={{ title: 'Minhas listas' }} />
       <Stack.Screen name="comunidade" options={{ title: 'Comunidade' }} />
       <Stack.Screen name="usuario/[id]" options={{ title: 'Perfil' }} />
       <Stack.Screen name="configuracoes" options={{ title: 'Configurações' }} />

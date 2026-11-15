@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { router } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { initialLists } from '../data/initialLists';
 import {
   SafeAreaView,
   View,
@@ -14,18 +15,17 @@ import {
 
 import { colors } from '../theme/colors';
 
-const listasIniciais = [
-  { icon: '▣', nome: 'Minhas versões', detalhe: '0 música', pro: true },
-  { icon: '↶', nome: 'Recentes', detalhe: '1 música' },
-  { icon: '♡', nome: 'Favoritas', detalhe: '0 música' },
-  { icon: '♧', nome: 'Consigo tocar', detalhe: '0 música' },
-  { icon: '◎', nome: 'Quero aprender', detalhe: '0 música' },
-];
-
 export default function ListsScreen({ onNavigate }) {
-  const [listas, setListas, listasReady] = usePersistedState('app:v1:playlists', listasIniciais);
+  const [listas, setListas, listasReady, reloadLists] = usePersistedState('app:v1:playlists', initialLists);
+  const [favorites, , favoritesReady, reloadFavorites] = usePersistedState('app:v1:favorites', []);
   const [creating, setCreating] = useState(false);
   const [listName, setListName] = useState('');
+  const [createError, setCreateError] = useState('');
+
+  useFocusEffect(useCallback(() => {
+    if (listasReady) reloadLists();
+    if (favoritesReady) reloadFavorites();
+  }, [favoritesReady, listasReady, reloadFavorites, reloadLists]));
 
   function openCreateList() {
     setCreating(true);
@@ -36,10 +36,10 @@ export default function ListsScreen({ onNavigate }) {
     setListName('');
   }
 
-  function createList() {
+  async function createList() {
     const name = listName.trim();
 
-    if (!name || !listasReady) {
+    if (!name) {
       return;
     }
 
@@ -48,11 +48,18 @@ export default function ListsScreen({ onNavigate }) {
       nome: name,
       detalhe: '0 músicas',
       custom: true,
+      songs: [],
     };
 
-    setListas((current) => [...current, newList]);
-    setListName('');
-    setCreating(false);
+    try {
+      await setListas((current) => [...current, newList]);
+      setCreateError('');
+      setListName('');
+      setCreating(false);
+    } catch {
+      await reloadLists();
+      setCreateError('Não foi possível salvar a lista. Tente novamente.');
+    }
   }
 
   return (
@@ -109,6 +116,8 @@ export default function ListsScreen({ onNavigate }) {
               Dê um nome para organizar suas músicas.
             </Text>
 
+            {!!createError && <Text style={styles.createError}>{createError}</Text>}
+
             <TextInput
               style={styles.input}
               placeholder="Nome da lista"
@@ -153,7 +162,9 @@ export default function ListsScreen({ onNavigate }) {
           <Pressable
             key={`${item.nome}-${index}`}
             style={styles.card}
-            onPress={() => router.push({ pathname: '/lista/[nome]', params: { nome: item.nome } })}
+            onPress={() => item.nome === 'Favoritas'
+              ? router.push('/favoritos')
+              : router.push({ pathname: '/lista/[nome]', params: { nome: item.nome } })}
           >
             <View
               style={[
@@ -170,7 +181,9 @@ export default function ListsScreen({ onNavigate }) {
               </Text>
 
               <Text style={styles.cardSubtitle}>
-                {item.detalhe}
+                {item.nome === 'Favoritas'
+                  ? `${favorites.length} ${favorites.length === 1 ? 'música favorita' : 'músicas favoritas'}`
+                  : `${(item.songs || []).length} ${(item.songs || []).length === 1 ? 'música' : 'músicas'}`}
               </Text>
 
               {item.custom && (
@@ -339,6 +352,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 17,
   },
+
+  createError: { color: '#ff8a80', fontSize: 12, marginBottom: 10 },
 
   input: {
     height: 50,

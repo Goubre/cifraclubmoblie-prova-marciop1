@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { router, useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -575,19 +576,32 @@ export default function SongScreen({
   const [transpose, setTranspose] = useState(0);
   const [simplified, setSimplified] = useState(false);
   const [autoScroll, setAutoScroll] = useState(false);
-  const [favorites, setFavorites, favoritesReady] = usePersistedState('app:v1:favorites', []);
+  const [favorites, setFavorites, favoritesReady, reloadFavorites] = usePersistedState('app:v1:favorites', []);
   const favorite = favorites.some((item) => item.song === songName && item.artist === artistName);
+  const [favoriteError, setFavoriteError] = useState('');
 
   const scrollRef = useRef(null);
   const scrollPosition = useRef(0);
 
   const sections = createSections(song);
 
-  function toggleFavorite() {
-    if (!favoritesReady) return;
-    setFavorites((current) => favorite
-      ? current.filter((item) => item.song !== songName || item.artist !== artistName)
-      : [...current, { song: songName, artist: artistName }]);
+  useFocusEffect(useCallback(() => {
+    if (favoritesReady) reloadFavorites();
+  }, [favoritesReady, reloadFavorites]));
+
+  async function toggleFavorite() {
+    setFavoriteError('');
+    try {
+      await setFavorites((current) => {
+        const exists = current.some((item) => item.song === songName && item.artist === artistName);
+        return exists
+          ? current.filter((item) => item.song !== songName || item.artist !== artistName)
+          : [...current, { song: songName, artist: artistName }];
+      });
+    } catch {
+      await reloadFavorites();
+      setFavoriteError('Não foi possível salvar o favorito. Tente novamente.');
+    }
   }
 
   useEffect(() => {
@@ -663,11 +677,9 @@ export default function SongScreen({
         <Pressable
           style={[
             styles.favoriteButton,
-            !favoritesReady && styles.disabledFavoriteButton,
             favorite && styles.favoriteButtonActive,
           ]}
           onPress={toggleFavorite}
-          disabled={!favoritesReady}
         >
           <Text
             style={[
@@ -781,7 +793,16 @@ export default function SongScreen({
               {autoScroll ? 'Parar rolagem' : 'Rolagem automática'}
             </Text>
           </Pressable>
+
+          <Pressable
+            style={styles.controlButton}
+            onPress={() => router.push({ pathname: '/adicionar-lista', params: { song: songName, artist: artistName } })}
+          >
+            <Text style={styles.controlButtonText}>Adicionar à lista</Text>
+          </Pressable>
         </View>
+
+        {!!favoriteError && <View style={styles.message}><Text style={styles.messageText}>{favoriteError}</Text></View>}
 
         {favorite && (
           <View style={styles.message}>
@@ -933,7 +954,6 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
 
-  disabledFavoriteButton: { opacity: 0.55 },
 
   favoriteIcon: {
     color: colors.text,
