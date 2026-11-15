@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { router } from 'expo-router';
 import {
   View,
   Text,
@@ -11,7 +12,6 @@ import {
   Switch,
 } from 'react-native';
 
-import BottomNav from '../components/BottomNav';
 import { colors } from '../theme/colors';
 
 export default function MoreScreen({ onNavigate }) {
@@ -509,6 +509,20 @@ export default function MoreScreen({ onNavigate }) {
               ))}
             </View>
 
+            <Text style={styles.sectionTitle}>Acesso rápido</Text>
+            {[
+              ['Músicas favoritas', '/favoritos'],
+              ['Explorar comunidade', '/comunidade'],
+              ['Preferências', '/configuracoes'],
+              ['Ajuda', '/ajuda'],
+              ['Conteúdo offline', '/offline'],
+            ].map(([label, path]) => (
+              <Pressable key={path} style={styles.option} onPress={() => router.push(path)}>
+                <Text style={styles.optionText}>{label}</Text>
+                <Text style={styles.arrow}>›</Text>
+              </Pressable>
+            ))}
+
             <View style={styles.aboutCard}>
               <Text style={styles.aboutLogo}>
                 cifraclub
@@ -529,10 +543,6 @@ export default function MoreScreen({ onNavigate }) {
         )}
       </ScrollView>
 
-      <BottomNav
-        active="Mais"
-        onNavigate={onNavigate}
-      />
     </SafeAreaView>
   );
 }
