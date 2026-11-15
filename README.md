@@ -1,105 +1,57 @@
-Cifra Club Mobile
+# Cifra Club Mobile
 
-Projeto acadêmico desenvolvido em React Native com Expo, inspirado no aplicativo Cifra Club.
+Aplicativo acadêmico inspirado no Cifra Club, desenvolvido com React Native, Expo e Expo Router.
 
-O objetivo do projeto é reproduzir a experiência de um aplicativo mobile híbrido, com navegação entre telas, busca de músicas e artistas, visualização de cifras e outras funcionalidades.
+## Requisitos
 
-- Integrantes
+- Node.js 22.13 ou superior
+- Expo Go compatível com o SDK 58 do projeto
 
-* Gabriel Velasco Leonel
-* Gabriel Cardoso de Lemos
+## Instalar e iniciar
 
-- Tecnologias utilizadas
-
-* React Native
-* Expo
-* JavaScript
-* Git
-* GitHub
-
-- Como executar o projeto
-
-1. Clonar o repositório
-
+```bash
 git clone https://github.com/Goubre/cifraclubmoblie-prova-marciop1.git
-
-2. Entrar na pasta
-
 cd cifraclubmoblie-prova-marciop1
-
-3. Instalar as dependências
-
 npm install
-
-4. Iniciar o projeto
-
 npx expo start
+```
 
-No Windows PowerShell, caso o comando acima seja bloqueado:
+No Windows PowerShell, se `npx` estiver bloqueado, use `npx.cmd expo start`.
 
-npx.cmd expo start
+Para testar no celular, conecte o computador e o aparelho à mesma rede Wi-Fi, abra o Expo Go, escaneie o QR Code exibido no terminal e aguarde o carregamento. O Expo Go precisa ser compatível com o SDK 58.
 
-Também é possível utilizar:
+Para abrir a versão web, inicie o projeto e pressione `W` no terminal do Expo.
 
-npm start
+## Telas
 
-- Executar no celular
+O aplicativo tem 15 rotas: Início, Listas, Busca, Academy, Mais, Comunidade, Artista, Música/Cifra, Favoritos, Detalhes da lista, Adicionar música à lista, Perfil da comunidade, Configurações, Conteúdo offline e Ajuda.
 
-Após iniciar o projeto, o Expo exibirá um QR Code no terminal.
+## Funcionalidades
 
-* Instale o Expo Go no celular.
-* Conecte o computador e o celular à mesma rede.
-* Abra o Expo Go.
-* Escaneie o QR Code mostrado no terminal.
-* Aguarde o aplicativo carregar.
+- Busca e navegação por músicas e artistas
+- Visualização de cifras, alteração de tom, modo simplificado e rolagem automática
+- Criação de listas e adição de cifras às listas
+- Favoritos salvos entre sessões
+- Preferência de tema salva localmente
+- Lista de perfis de comunidade e detalhes carregados de uma API
+- Cache local dos dados da API, com uso dos dados salvos quando não há conexão
+- Navegação com Expo Router e layouts responsivos usando `StyleSheet` e Flexbox
 
-- Executar no navegador
+## API e armazenamento
 
-Inicie o projeto normalmente e, quando o Expo estiver aberto no terminal, pressione a tecla:
+Os perfis da comunidade são obtidos da API pública JSONPlaceholder (`/users` e `/users/:id`). Listas, favoritos, preferência de tema e cache da API são armazenados localmente com AsyncStorage.
 
-W
+## Verificações
 
-O projeto será compilado e aberto no navegador.
+```bash
+npx expo lint
+npx expo install --check
+npx expo-doctor
+```
 
-Caso as dependências para Web ainda não estejam instaladas:
+## Integrantes
 
-npx expo install react-dom react-native-web
+- Gabriel Velasco Leonel
+- Gabriel Cardoso de Lemos
 
-No Windows PowerShell:
-
-npx.cmd expo install react-dom react-native-web
-
-Depois, inicie o Expo novamente e pressione W.
-
-- Telas do aplicativo
-
-* Início
-* Listas
-* Busca
-* Academy
-* Mais
-* Artista
-* Cifra / Música
-
-- Funcionalidades
-
-* Navegação entre as telas
-* Busca de músicas e artistas
-* Visualização de artistas e músicas
-* Visualização de cifras
-* Alteração do tom
-* Modo simplificado de cifra
-* Rolagem automática
-* Sistema de favoritos
-* Criação de listas personalizadas
-* Área Academy
-* Afinador demonstrativo
-* Configurações
-* Conteúdo offline demonstrativo
-* Área de ajuda e informações
-
-- Observação
-
-Este projeto foi desenvolvido exclusivamente para fins acadêmicos.
-
-Alguns conteúdos e funcionalidades são demonstrativos e foram implementados com o objetivo de reproduzir a experiência de utilização de um aplicativo mobile híbrido.
+Projeto desenvolvido para fins acadêmicos. Alguns conteúdos são demonstrativos.
