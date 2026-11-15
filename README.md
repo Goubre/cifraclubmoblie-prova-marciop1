@@ -31,7 +31,7 @@ O aplicativo tem 15 rotas: Início, Listas, Busca, Academy, Mais, Comunidade, Ar
 - Busca e navegação por músicas e artistas
 - Busca musical ao vivo com capas de álbum, lançamentos em destaque e links para Apple Music
 - Visualização de cifras, alteração de tom, modo simplificado e rolagem automática
-- Criação de listas e adição de cifras às listas
+- Criação de listas, adição de cifras e remoção de músicas com confirmação
 - Favoritos salvos entre sessões
 - Preferência de tema salva localmente
 - Lista de perfis de comunidade e detalhes carregados de uma API

@@ -75,7 +75,7 @@ export default function MoreScreen({ onNavigate }) {
     }
 
     setLoginMessage(
-      'Login demonstrativo realizado com sucesso!'
+      'Esta tela é demonstrativa. A autenticação real ainda precisa ser configurada.'
     );
   }
 
@@ -94,8 +94,7 @@ export default function MoreScreen({ onNavigate }) {
           />
 
           <Text style={styles.panelDescription}>
-            Entre para sincronizar suas músicas,
-            favoritos e listas.
+            A autenticação e a sincronização ainda não estão conectadas.
           </Text>
 
           <Text style={styles.inputLabel}>
