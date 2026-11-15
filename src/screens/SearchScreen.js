@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { router } from 'expo-router';
 import {
   View,
   Text,
@@ -10,7 +11,6 @@ import {
   StatusBar,
 } from 'react-native';
 
-import BottomNav from '../components/BottomNav';
 import { colors } from '../theme/colors';
 
 export default function SearchScreen({
@@ -204,6 +204,11 @@ export default function SearchScreen({
           </Text>
         </View>
 
+        <Pressable style={styles.communityButton} onPress={() => router.push('/comunidade')}>
+          <Text style={styles.communityTitle}>Explorar comunidade</Text>
+          <Text style={styles.communitySubtitle}>Veja perfis carregados ao vivo pela API →</Text>
+        </Pressable>
+
         <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>⌕</Text>
 
@@ -323,7 +328,6 @@ export default function SearchScreen({
         <View style={styles.bottomSpace} />
       </ScrollView>
 
-      <BottomNav active="Busca" onNavigate={onNavigate} />
     </SafeAreaView>
   );
 }
@@ -344,6 +348,10 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 22,
   },
+
+  communityButton: { backgroundColor: colors.primarySoft, borderRadius: 14, borderWidth: 1, borderColor: colors.primary, padding: 14, marginBottom: 20 },
+  communityTitle: { color: colors.text, fontWeight: '700', fontSize: 14 },
+  communitySubtitle: { color: colors.textSecondary, fontSize: 12, marginTop: 5 },
 
   title: {
     color: colors.text,
