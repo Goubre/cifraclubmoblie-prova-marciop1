@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { usePersistedState } from '../hooks/usePersistedState';
 import {
   View,
   Text,
@@ -574,26 +575,20 @@ export default function SongScreen({
   const [transpose, setTranspose] = useState(0);
   const [simplified, setSimplified] = useState(false);
   const [autoScroll, setAutoScroll] = useState(false);
-  const [favorite, setFavorite] = useState(false);
+  const [favorites, setFavorites, favoritesReady] = usePersistedState('app:v1:favorites', []);
+  const favorite = favorites.some((item) => item.song === songName && item.artist === artistName);
 
   const scrollRef = useRef(null);
   const scrollPosition = useRef(0);
 
   const sections = createSections(song);
 
-  useEffect(() => {
-    setTranspose(0);
-    setSimplified(false);
-    setAutoScroll(false);
-    setFavorite(false);
-
-    scrollPosition.current = 0;
-
-    scrollRef.current?.scrollTo({
-      y: 0,
-      animated: false,
-    });
-  }, [songName]);
+  function toggleFavorite() {
+    if (!favoritesReady) return;
+    setFavorites((current) => favorite
+      ? current.filter((item) => item.song !== songName || item.artist !== artistName)
+      : [...current, { song: songName, artist: artistName }]);
+  }
 
   useEffect(() => {
     if (!autoScroll) {
@@ -668,9 +663,11 @@ export default function SongScreen({
         <Pressable
           style={[
             styles.favoriteButton,
+            !favoritesReady && styles.disabledFavoriteButton,
             favorite && styles.favoriteButtonActive,
           ]}
-          onPress={() => setFavorite(!favorite)}
+          onPress={toggleFavorite}
+          disabled={!favoritesReady}
         >
           <Text
             style={[
@@ -935,6 +932,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
     borderColor: colors.primary,
   },
+
+  disabledFavoriteButton: { opacity: 0.55 },
 
   favoriteIcon: {
     color: colors.text,
