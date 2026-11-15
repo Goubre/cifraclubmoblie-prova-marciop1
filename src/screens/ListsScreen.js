@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { router } from 'expo-router';
+import { usePersistedState } from '../hooks/usePersistedState';
 import {
   SafeAreaView,
   View,
@@ -11,7 +13,6 @@ import {
 } from 'react-native';
 
 import { colors } from '../theme/colors';
-import BottomNav from '../components/BottomNav';
 
 const listasIniciais = [
   { icon: '▣', nome: 'Minhas versões', detalhe: '0 música', pro: true },
@@ -22,7 +23,7 @@ const listasIniciais = [
 ];
 
 export default function ListsScreen({ onNavigate }) {
-  const [listas, setListas] = useState(listasIniciais);
+  const [listas, setListas, listasReady] = usePersistedState('app:v1:playlists', listasIniciais);
   const [creating, setCreating] = useState(false);
   const [listName, setListName] = useState('');
 
@@ -38,7 +39,7 @@ export default function ListsScreen({ onNavigate }) {
   function createList() {
     const name = listName.trim();
 
-    if (!name) {
+    if (!name || !listasReady) {
       return;
     }
 
@@ -49,7 +50,7 @@ export default function ListsScreen({ onNavigate }) {
       custom: true,
     };
 
-    setListas([...listas, newList]);
+    setListas((current) => [...current, newList]);
     setListName('');
     setCreating(false);
   }
@@ -152,6 +153,7 @@ export default function ListsScreen({ onNavigate }) {
           <Pressable
             key={`${item.nome}-${index}`}
             style={styles.card}
+            onPress={() => router.push({ pathname: '/lista/[nome]', params: { nome: item.nome } })}
           >
             <View
               style={[
@@ -224,10 +226,6 @@ export default function ListsScreen({ onNavigate }) {
         </View>
       </ScrollView>
 
-      <BottomNav
-        active="Listas"
-        onNavigate={onNavigate}
-      />
     </SafeAreaView>
   );
 }
