@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 
 import { colors } from '../theme/colors';
-import BottomNav from '../components/BottomNav';
 
 export default function HomeScreen({
   onNavigate,
@@ -400,10 +399,6 @@ export default function HomeScreen({
         <View style={styles.bottomSpace} />
       </ScrollView>
 
-      <BottomNav
-        active="Início"
-        onNavigate={onNavigate}
-      />
     </SafeAreaView>
   );
 }
