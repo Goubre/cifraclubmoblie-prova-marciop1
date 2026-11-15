@@ -1,0 +1,5 @@
+import React from 'react';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../theme/colors';
+export default function OfflineRoute() { return <SafeAreaView style={styles.container}><Text style={styles.title}>Conteúdo offline</Text><View style={styles.card}><Text style={styles.name}>Come As You Are</Text><Text style={styles.artist}>Nirvana · disponível no app</Text><Text style={styles.note}>As músicas favoritas e as listas criadas ficam guardadas neste aparelho.</Text></View></SafeAreaView>; }
+const styles = StyleSheet.create({ container: { flex: 1, padding: 20, backgroundColor: colors.background }, title: { color: colors.text, fontSize: 27, fontWeight: '800', marginBottom: 18 }, card: { padding: 17, borderRadius: 15, backgroundColor: colors.surface }, name: { color: colors.text, fontSize: 16, fontWeight: '700' }, artist: { color: colors.primary, marginTop: 5 }, note: { color: colors.textSecondary, fontSize: 12, lineHeight: 18, marginTop: 14 } });
