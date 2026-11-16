@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   SafeAreaView,
   Text,
@@ -9,7 +9,6 @@ import {
   StatusBar,
   ActivityIndicator,
   FlatList,
-  Image,
   Linking,
   RefreshControl,
 } from 'react-native';
@@ -17,6 +16,44 @@ import {
 import { colors } from '../theme/colors';
 import { api } from '../services/api';
 import { withCache } from '../services/cache';
+import { trackKey, useTrackArtwork } from '../hooks/useTrackArtwork';
+import Artwork from '../components/Artwork';
+import ArtistAvatar from '../components/ArtistAvatar';
+
+const trendingSongs = [
+  { title: 'Come As You Are', artist: 'Nirvana', category: 'Nirvana' },
+  { title: 'Smells Like Teen Spirit', artist: 'Nirvana', category: 'Nirvana' },
+  { title: 'Nothing Else Matters', artist: 'Metallica', category: 'Metallica' },
+  { title: 'Enter Sandman', artist: 'Metallica', category: 'Metallica' },
+  { title: "Sweet Child O' Mine", artist: "Guns N' Roses", category: "Guns N' Roses" },
+  { title: 'November Rain', artist: "Guns N' Roses", category: "Guns N' Roses" },
+  { title: 'Californication', artist: 'Red Hot Chili Peppers', category: 'RHCP' },
+  { title: 'Under the Bridge', artist: 'Red Hot Chili Peppers', category: 'RHCP' },
+  { title: 'Everlong', artist: 'Foo Fighters', category: 'Foo Fighters' },
+  { title: 'The Pretender', artist: 'Foo Fighters', category: 'Foo Fighters' },
+];
+
+const popularArtists = [
+  { name: 'Nirvana', initials: 'N' },
+  { name: 'Metallica', initials: 'M' },
+  { name: "Guns N' Roses", initials: 'GNR' },
+  { name: 'Red Hot Chili Peppers', initials: 'RHCP' },
+  { name: 'Foo Fighters', initials: 'FF' },
+];
+
+function PopularArtistCard({ artist, onPress }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.artistCard, pressed && styles.pressed]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Abrir perfil de ${artist.name}`}
+    >
+      <ArtistAvatar name={artist.name} style={styles.artistCircle} />
+      <Text style={styles.artistCardName} numberOfLines={2}>{artist.name}</Text>
+    </Pressable>
+  );
+}
 
 export default function HomeScreen({
   onNavigate,
@@ -73,69 +110,20 @@ export default function HomeScreen({
     'Foo Fighters',
   ];
 
-  const songs = [
-    {
-      title: 'Come As You Are',
-      artist: 'Nirvana',
-      category: 'Nirvana',
-    },
-    {
-      title: 'Smells Like Teen Spirit',
-      artist: 'Nirvana',
-      category: 'Nirvana',
-    },
-    {
-      title: 'Nothing Else Matters',
-      artist: 'Metallica',
-      category: 'Metallica',
-    },
-    {
-      title: 'Enter Sandman',
-      artist: 'Metallica',
-      category: 'Metallica',
-    },
-    {
-      title: "Sweet Child O' Mine",
-      artist: "Guns N' Roses",
-      category: "Guns N' Roses",
-    },
-    {
-      title: 'November Rain',
-      artist: "Guns N' Roses",
-      category: "Guns N' Roses",
-    },
-    {
-      title: 'Californication',
-      artist: 'Red Hot Chili Peppers',
-      category: 'RHCP',
-    },
-    {
-      title: 'Under the Bridge',
-      artist: 'Red Hot Chili Peppers',
-      category: 'RHCP',
-    },
-    {
-      title: 'Everlong',
-      artist: 'Foo Fighters',
-      category: 'Foo Fighters',
-    },
-    {
-      title: 'The Pretender',
-      artist: 'Foo Fighters',
-      category: 'Foo Fighters',
-    },
-  ];
-
-  const filteredSongs =
+  const filteredSongs = useMemo(() => (
     selectedCategory === 'Todos'
-      ? songs.slice(0, 5)
-      : songs.filter(
-          (song) =>
-            song.category === selectedCategory
-        );
+      ? trendingSongs.slice(0, 5)
+      : trendingSongs.filter((song) => song.category === selectedCategory)
+  ), [selectedCategory]);
+  const tracksForArtwork = useMemo(
+    () => filteredSongs.map(({ title, artist }) => ({ title, artist })),
+    [filteredSongs],
+  );
+  const trendingArtwork = useTrackArtwork(tracksForArtwork);
 
   function openSong(song) {
-    onOpenSong?.(song.title, song.artist);
+    const track = trendingArtwork[trackKey(song.title, song.artist)];
+    onOpenSong?.(song.title, song.artist, track?.artworkUrl, track?.storeUrl);
   }
 
   return (
@@ -283,11 +271,12 @@ export default function HomeScreen({
             )
           }
         >
-          <View style={styles.songCover}>
-            <Text style={styles.coverText}>
-              ♪
-            </Text>
-          </View>
+          <Artwork
+            uri={trendingArtwork[trackKey('Come As You Are', 'Nirvana')]?.artworkUrl}
+            name="Come As You Are"
+            type="track"
+            style={styles.songCover}
+          />
 
           <View style={styles.songInfo}>
             <Text style={styles.songName}>
@@ -340,7 +329,7 @@ export default function HomeScreen({
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir cifra de ${item.song}, ${item.artist}`}
                 >
-                  <Image source={{ uri: item.artworkUrl }} style={styles.musicArtwork} />
+                  <Artwork uri={item.artworkUrl} name={item.song} type="track" style={styles.musicArtwork} />
                   <Text style={styles.musicCardTitle} numberOfLines={1}>{item.song}</Text>
                   <Text style={styles.musicCardArtist} numberOfLines={1}>{item.artist}</Text>
                 </Pressable>
@@ -396,13 +385,12 @@ export default function HomeScreen({
                 )}
               </Text>
 
-              <View style={styles.trendingCover}>
-                <Text
-                  style={styles.trendingCoverText}
-                >
-                  ♪
-                </Text>
-              </View>
+              <Artwork
+                uri={trendingArtwork[trackKey(song.title, song.artist)]?.artworkUrl}
+                name={song.title}
+                type="track"
+                style={styles.trendingCover}
+              />
 
               <View style={styles.songInfo}>
                 <Text
@@ -443,57 +431,8 @@ export default function HomeScreen({
           horizontal
           showsHorizontalScrollIndicator={false}
         >
-          {[
-            {
-              name: 'Nirvana',
-              initials: 'N',
-            },
-            {
-              name: 'Metallica',
-              initials: 'M',
-            },
-            {
-              name: "Guns N' Roses",
-              initials: 'GNR',
-            },
-            {
-              name: 'Red Hot Chili Peppers',
-              initials: 'RHCP',
-            },
-            {
-              name: 'Foo Fighters',
-              initials: 'FF',
-            },
-          ].map((artist) => (
-            <Pressable
-              key={artist.name}
-              style={({ pressed }) => [
-                styles.artistCard,
-                pressed && styles.pressed,
-              ]}
-              onPress={() =>
-                onOpenArtist?.(artist.name)
-              }
-            >
-              <View style={styles.artistCircle}>
-                <Text
-                  style={[
-                    styles.artistInitials,
-                    artist.initials.length > 2 &&
-                      styles.smallInitials,
-                  ]}
-                >
-                  {artist.initials}
-                </Text>
-              </View>
-
-              <Text
-                style={styles.artistCardName}
-                numberOfLines={2}
-              >
-                {artist.name}
-              </Text>
-            </Pressable>
+          {popularArtists.map((artist) => (
+            <PopularArtistCard key={artist.name} artist={artist} onPress={() => onOpenArtist?.(artist.name)} />
           ))}
         </ScrollView>
 
@@ -896,6 +835,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
+
   trendingCoverText: {
     color: colors.primary,
     fontSize: 18,
@@ -923,6 +863,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
 
   artistInitials: {
     color: colors.primary,

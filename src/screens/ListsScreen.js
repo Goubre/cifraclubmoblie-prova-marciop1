@@ -2,18 +2,11 @@ import React, { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { initialLists } from '../data/initialLists';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  StatusBar,
-} from 'react-native';
+import { Pressable, SafeAreaView, View, Text, TextInput, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import { removePlaylistCover } from '../services/playlistImage';
 
 import { colors } from '../theme/colors';
+import Artwork from '../components/Artwork';
 
 export default function ListsScreen({ onNavigate }) {
   const [listas, setListas, listasReady, reloadLists] = usePersistedState('app:v1:playlists', initialLists);
@@ -21,6 +14,9 @@ export default function ListsScreen({ onNavigate }) {
   const [creating, setCreating] = useState(false);
   const [listName, setListName] = useState('');
   const [createError, setCreateError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(useCallback(() => {
     if (listasReady) reloadLists();
@@ -44,6 +40,7 @@ export default function ListsScreen({ onNavigate }) {
     }
 
     const newList = {
+      id: String(Date.now()),
       icon: '♪',
       nome: name,
       detalhe: '0 músicas',
@@ -59,6 +56,24 @@ export default function ListsScreen({ onNavigate }) {
     } catch {
       await reloadLists();
       setCreateError('Não foi possível salvar a lista. Tente novamente.');
+    }
+  }
+
+  async function deletePlaylist() {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await setListas((current) => current.filter((item) => (
+        item !== deleteTarget && (deleteTarget.id ? item.id !== deleteTarget.id : item.nome !== deleteTarget.nome)
+      )));
+      if (deleteTarget.coverUri) await removePlaylistCover(deleteTarget.coverUri);
+      setDeleteTarget(null);
+    } catch {
+      await reloadLists();
+      setDeleteError('Não foi possível excluir a playlist. Tente novamente.');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -158,49 +173,64 @@ export default function ListsScreen({ onNavigate }) {
           Suas listas
         </Text>
 
+        {deleteTarget && (
+          <View style={styles.deleteConfirm}>
+            <Text style={styles.deleteTitle}>Excluir “{deleteTarget.nome}”?</Text>
+            <Text style={styles.deleteDescription}>As músicas salvas nesta playlist também serão removidas.</Text>
+            {!!deleteError && <Text style={styles.createError}>{deleteError}</Text>}
+            <View style={styles.createActions}>
+              <Pressable style={styles.cancelButton} onPress={() => setDeleteTarget(null)} disabled={deleting}>
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </Pressable>
+              <Pressable style={styles.deleteConfirmButton} onPress={deletePlaylist} disabled={deleting}>
+                <Text style={styles.deleteConfirmText}>{deleting ? 'Excluindo…' : 'Excluir playlist'}</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+
         {listas.map((item, index) => (
-          <Pressable
+          <View
             key={`${item.nome}-${index}`}
             style={styles.card}
-            onPress={() => item.nome === 'Favoritas'
-              ? router.push('/favoritos')
-              : router.push({ pathname: '/lista/[nome]', params: { nome: item.nome } })}
           >
-            <View
-              style={[
-                styles.iconBox,
-                item.custom && styles.customIcon,
-              ]}
+            <Pressable
+              style={styles.cardMain}
+              onPress={() => item.nome === 'Favoritas'
+                ? router.push('/favoritos')
+                : router.push({ pathname: '/lista/[nome]', params: { nome: item.nome } })}
+              accessibilityRole="button"
+              accessibilityLabel={`Abrir playlist ${item.nome}`}
             >
-              <Text style={styles.icon}>{item.icon}</Text>
-            </View>
+              <Artwork uri={item.coverUri || (item.nome === 'Favoritas' ? favorites[0]?.artworkUrl : item.songs?.[0]?.artworkUrl)} name={item.nome} type="playlist" style={[styles.iconBox, item.custom && styles.customIcon]} />
 
-            <View style={styles.cardInfo}>
-              <Text style={styles.cardTitle}>
-                {item.nome}
-              </Text>
+              <View style={styles.cardInfo}>
+                <Text style={styles.cardTitle}>{item.nome}</Text>
 
-              <Text style={styles.cardSubtitle}>
-                {item.nome === 'Favoritas'
-                  ? `${favorites.length} ${favorites.length === 1 ? 'música favorita' : 'músicas favoritas'}`
-                  : `${(item.songs || []).length} ${(item.songs || []).length === 1 ? 'música' : 'músicas'}`}
-              </Text>
-
-              {item.custom && (
-                <Text style={styles.customLabel}>
-                  Criada por você
+                <Text style={styles.cardSubtitle}>
+                  {item.nome === 'Favoritas'
+                    ? `${favorites.length} ${favorites.length === 1 ? 'música favorita' : 'músicas favoritas'}`
+                    : `${(item.songs || []).length} ${(item.songs || []).length === 1 ? 'música' : 'músicas'}`}
                 </Text>
-              )}
-            </View>
 
-            {item.pro ? (
-              <View style={styles.proBadge}>
-                <Text style={styles.proText}>PRO</Text>
+                {item.custom && <Text style={styles.customLabel}>Criada por você</Text>}
               </View>
-            ) : (
-              <Text style={styles.more}>⋮</Text>
+
+              {item.pro && <View style={styles.proBadge}><Text style={styles.proText}>PRO</Text></View>}
+              {!item.custom && !item.pro && <Text style={styles.more}>›</Text>}
+            </Pressable>
+            {item.custom && (
+              <Pressable
+                style={styles.deleteButton}
+                onPress={() => { setDeleteTarget(item); setDeleteError(''); }}
+                accessibilityRole="button"
+                accessibilityLabel={`Excluir playlist ${item.nome}`}
+                hitSlop={8}
+              >
+                <Text style={styles.deleteButtonText}>Excluir</Text>
+              </Pressable>
             )}
-          </Pressable>
+          </View>
         ))}
 
         <Pressable
@@ -420,6 +450,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  cardMain: { flex: 1, minWidth: 0, minHeight: 82, flexDirection: 'row', alignItems: 'center' },
+  playlistCover: { width: 50, height: 50, borderRadius: 13 },
+
   iconBox: {
     width: 50,
     height: 50,
@@ -467,6 +500,14 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 25,
   },
+
+  deleteButton: { minHeight: 42, justifyContent: 'center', paddingHorizontal: 11, marginLeft: 7, borderRadius: 10, backgroundColor: '#3b2020' },
+  deleteButtonText: { color: '#ff8a80', fontSize: 11, fontWeight: '800' },
+  deleteConfirm: { padding: 16, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#b93838', backgroundColor: colors.surface },
+  deleteTitle: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  deleteDescription: { color: colors.textSecondary, fontSize: 12, lineHeight: 18, marginTop: 6 },
+  deleteConfirmButton: { justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 11, borderRadius: 10, backgroundColor: '#b93838' },
+  deleteConfirmText: { color: colors.white, fontSize: 12, fontWeight: '800' },
 
   proBadge: {
     backgroundColor: colors.primary,

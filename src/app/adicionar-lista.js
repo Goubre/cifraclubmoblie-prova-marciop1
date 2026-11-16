@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { initialLists } from '../data/initialLists';
 import { colors } from '../theme/colors';
+import Artwork from '../components/Artwork';
 
 export default function AddSongToListRoute() {
   const { song = '', artist = '', artworkUrl = '', storeUrl = '' } = useLocalSearchParams();
@@ -62,7 +63,7 @@ export default function AddSongToListRoute() {
             const count = item.nome === 'Favoritas' ? favorites.length : (item.songs || []).length;
             return (
               <Pressable style={styles.row} onPress={() => addSong(item.nome)} disabled={saving}>
-                <View style={styles.icon}>{coverUrl ? <Image source={{ uri: coverUrl }} style={styles.iconImage} /> : <Text style={styles.iconText}>{item.icon || '♫'}</Text>}</View>
+                <Artwork uri={coverUrl || item.coverUri || item.songs?.[0]?.artworkUrl} name={item.nome} type="playlist" style={styles.icon} />
                 <View style={styles.info}>
                   <Text style={styles.name}>{item.nome}</Text>
                   <Text style={styles.count}>{count} {count === 1 ? 'música' : 'músicas'}</Text>

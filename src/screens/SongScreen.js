@@ -9,11 +9,11 @@ import {
   ScrollView,
   Pressable,
   StatusBar,
-  Image,
   Linking,
 } from 'react-native';
 
 import { colors } from '../theme/colors';
+import Artwork from '../components/Artwork';
 
 /*
   Os trechos "excerpt" são trechos curtos das músicas.
@@ -709,22 +709,20 @@ export default function SongScreen({
         scrollEventThrottle={16}
       >
         <View style={styles.songHeader}>
-          {!!artworkUrl && (
-            <View style={styles.albumArtworkPanel}>
-              <Image source={{ uri: artworkUrl }} style={styles.albumArtwork} />
+          <View style={styles.albumArtworkPanel}>
+              <Artwork uri={artworkUrl} name={songName} type="track" style={styles.albumArtwork} />
               <View style={styles.albumArtworkInfo}>
-                <Text style={styles.albumArtworkLabel}>CAPA DO LANÇAMENTO</Text>
+                <Text style={styles.albumArtworkLabel}>{artworkUrl ? 'CAPA DO LANÇAMENTO' : 'ARTE DA MÚSICA'}</Text>
                 <Text style={styles.albumArtworkTitle} numberOfLines={2}>{songName}</Text>
                 <Text style={styles.albumArtworkArtist} numberOfLines={1}>{artistName}</Text>
-                {!!storeUrl && (
+                {!!(artworkUrl && storeUrl) && (
                   <Pressable style={styles.albumStoreLink} onPress={() => Linking.openURL(storeUrl)}>
                     <Text style={styles.albumStoreLinkText}>Ver no Apple Music ↗</Text>
                   </Pressable>
                 )}
-                <Text style={styles.albumAttribution}>Capa e dados fornecidos pelo iTunes.</Text>
+                {!!artworkUrl && <Text style={styles.albumAttribution}>Capa e dados fornecidos pelo iTunes.</Text>}
               </View>
-            </View>
-          )}
+          </View>
           <Text style={styles.songTitle}>
             {songName}
           </Text>

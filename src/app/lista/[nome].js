@@ -1,9 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { usePersistedState } from '../../hooks/usePersistedState';
 import { initialLists } from '../../data/initialLists';
 import { colors } from '../../theme/colors';
+import Artwork from '../../components/Artwork';
+import { removePlaylistCover, savePlaylistCover } from '../../services/playlistImage';
 
 export default function PlaylistRoute() {
   const { nome } = useLocalSearchParams();
@@ -13,6 +16,8 @@ export default function PlaylistRoute() {
   const [removeTarget, setRemoveTarget] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [coverError, setCoverError] = useState('');
+  const [changingCover, setChangingCover] = useState(false);
   const isFavorites = listName === 'Favoritas';
   const playlist = playlists.find((item) => item.nome === listName);
   const songs = isFavorites ? favorites : playlist?.songs || [];
@@ -51,7 +56,38 @@ export default function PlaylistRoute() {
     }
   }
 
-  const coverUrl = songs[0]?.artworkUrl;
+  async function choosePlaylistCover() {
+    if (!playlist?.custom || changingCover) return;
+    setChangingCover(true);
+    setCoverError('');
+    let newCoverUri;
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.82,
+        base64: Platform.OS === 'web',
+      });
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+
+      newCoverUri = await savePlaylistCover(result.assets[0].uri, result.assets[0].base64);
+      await setPlaylists((current) => current.map((item) => (
+        item.nome === listName ? { ...item, coverUri: newCoverUri } : item
+      )));
+      if (playlist.coverUri && playlist.coverUri !== newCoverUri) {
+        await removePlaylistCover(playlist.coverUri);
+      }
+    } catch {
+      if (newCoverUri) await removePlaylistCover(newCoverUri);
+      await reloadLists();
+      setCoverError('Não foi possível salvar a foto. Tente escolher outra imagem.');
+    } finally {
+      setChangingCover(false);
+    }
+  }
+
+  const coverUrl = playlist?.coverUri || songs[0]?.artworkUrl;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,11 +99,7 @@ export default function PlaylistRoute() {
         ListHeaderComponent={(
           <>
             <View style={styles.hero}>
-              {coverUrl ? (
-                <Image source={{ uri: coverUrl }} style={styles.heroArtwork} />
-              ) : (
-                <View style={styles.heroArtworkFallback}><Text style={styles.heroMusicNote}>♫</Text></View>
-              )}
+              <Artwork uri={coverUrl} name={listName} type={playlist?.coverUri ? 'playlist' : 'track'} style={styles.heroArtwork} />
               <View style={styles.heroInfo}>
                 <Text style={styles.eyebrow}>{isFavorites ? 'SUA COLEÇÃO' : 'PLAYLIST'}</Text>
                 <Text style={styles.title}>{listName}</Text>
@@ -76,6 +108,21 @@ export default function PlaylistRoute() {
                 </Text>
               </View>
             </View>
+
+            {!isFavorites && playlist?.custom && (
+              <Pressable
+                style={styles.changeCoverButton}
+                onPress={choosePlaylistCover}
+                disabled={changingCover}
+                accessibilityRole="button"
+              >
+                <Text style={styles.changeCoverIcon}>{changingCover ? '…' : '▧'}</Text>
+                <Text style={styles.changeCoverText}>
+                  {changingCover ? 'Salvando foto…' : playlist.coverUri ? 'Trocar foto da playlist' : 'Escolher foto da galeria'}
+                </Text>
+              </Pressable>
+            )}
+            {!!coverError && <Text style={styles.error}>{coverError}</Text>}
 
             {removeTarget && (
               <View style={styles.confirmCard}>
@@ -124,11 +171,7 @@ export default function PlaylistRoute() {
               accessibilityRole="button"
               accessibilityLabel={`Abrir ${item.song}, ${item.artist}`}
             >
-              {item.artworkUrl ? (
-                <Image source={{ uri: item.artworkUrl }} style={styles.songArtwork} />
-              ) : (
-                <View style={styles.songArtworkFallback}><Text style={styles.songFallbackIcon}>♫</Text></View>
-              )}
+              <Artwork uri={item.artworkUrl} name={item.song} type="track" style={styles.songArtwork} />
               <View style={styles.songInfo}>
                 <Text style={styles.songTitle} numberOfLines={1}>{item.song}</Text>
                 <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
@@ -161,6 +204,9 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.primary, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
   title: { color: colors.text, fontSize: 24, lineHeight: 30, fontWeight: '800', marginTop: 5 },
   subtitle: { color: colors.textSecondary, fontSize: 13, marginTop: 6 },
+  changeCoverButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start', paddingHorizontal: 14, marginTop: -9, marginBottom: 17, borderRadius: 12, backgroundColor: colors.primarySoft },
+  changeCoverIcon: { color: colors.primary, fontSize: 16, marginRight: 8 },
+  changeCoverText: { color: colors.primary, fontSize: 12, fontWeight: '800' },
   confirmCard: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', padding: 14, marginBottom: 15, borderRadius: 16, backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.primary },
   confirmCopy: { flexBasis: '100%', marginBottom: 10 },
   confirmTitle: { color: colors.text, fontWeight: '800', fontSize: 14 },

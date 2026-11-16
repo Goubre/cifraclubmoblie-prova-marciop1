@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
+  Linking,
   View,
   Text,
   StyleSheet,
@@ -10,6 +11,9 @@ import {
 } from 'react-native';
 
 import { colors } from '../theme/colors';
+import { useArtistPhoto } from '../hooks/useArtistPhoto';
+import { trackKey, useTrackArtwork } from '../hooks/useTrackArtwork';
+import Artwork from '../components/Artwork';
 
 const artists = {
   Nirvana: {
@@ -91,9 +95,16 @@ export default function ArtistScreen({
   const [following, setFollowing] = useState(false);
 
   const artist = artists[artistName] || artists.Nirvana;
+  const artistPhoto = useArtistPhoto(artist.name);
+  const artistTracks = useMemo(
+    () => artist.songs.map((title) => ({ title, artist: artist.name })),
+    [artist],
+  );
+  const songArtwork = useTrackArtwork(artistTracks);
 
   function openFirstSong() {
-    onOpenSong(artist.songs[0], artist.name);
+    const track = songArtwork[trackKey(artist.songs[0], artist.name)];
+    onOpenSong(artist.songs[0], artist.name, track?.artworkUrl, track?.storeUrl);
   }
 
   return (
@@ -119,17 +130,13 @@ export default function ArtistScreen({
         </View>
 
         <View style={styles.artistHeader}>
-          <View style={styles.artistImage}>
-            <Text
-              style={[
-                styles.artistLogo,
-                artist.initials.length > 2 &&
-                  styles.smallLogo,
-              ]}
-            >
-              {artist.initials}
-            </Text>
-          </View>
+          <Artwork uri={artistPhoto?.url} name={artist.name} type="artist" style={styles.artistImage} />
+
+          {!!artistPhoto?.sourceUrl && (
+            <Pressable style={styles.photoSource} onPress={() => Linking.openURL(artistPhoto.sourceUrl)}>
+              <Text style={styles.photoSourceText}>{artistPhoto.sourceLabel || 'Imagem do artista'} ↗</Text>
+            </Pressable>
+          )}
 
           <Text style={styles.artistName}>
             {artist.name}
@@ -196,26 +203,22 @@ export default function ArtistScreen({
         </View>
 
         <View style={styles.songList}>
-          {artist.songs.map((song, index) => (
+          {artist.songs.map((song, index) => {
+            const track = songArtwork[trackKey(song, artist.name)];
+            return (
             <Pressable
               key={song}
               style={({ pressed }) => [
                 styles.song,
                 pressed && styles.songPressed,
               ]}
-              onPress={() =>
-                onOpenSong(song, artist.name)
-              }
+              onPress={() => onOpenSong(song, artist.name, track?.artworkUrl, track?.storeUrl)}
             >
               <Text style={styles.songNumber}>
                 {String(index + 1).padStart(2, '0')}
               </Text>
 
-              <View style={styles.songIcon}>
-                <Text style={styles.songIconText}>
-                  ♪
-                </Text>
-              </View>
+              <Artwork uri={track?.artworkUrl} name={song} type="track" style={styles.songIcon} />
 
               <View style={styles.songInfo}>
                 <Text
@@ -234,7 +237,7 @@ export default function ArtistScreen({
                 ›
               </Text>
             </Pressable>
-          ))}
+          ); })}
         </View>
 
         <View style={styles.tipCard}>
@@ -320,6 +323,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  artistPortrait: { width: '100%', height: '100%', borderRadius: 56 },
+  photoSource: { paddingVertical: 7, paddingHorizontal: 12 },
+  photoSourceText: { color: colors.muted, fontSize: 10, fontWeight: '600' },
 
   artistLogo: {
     color: colors.primary,
@@ -485,6 +492,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+
+  songArtwork: { width: '100%', height: '100%', borderRadius: 11 },
 
   songInfo: {
     flex: 1,

@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { colors } from '../theme/colors';
 import { usePersistedState } from '../hooks/usePersistedState';
+import Artwork from '../components/Artwork';
 
 export default function FavoritesRoute() {
   const [favorites, setFavorites, ready, reloadFavorites] = usePersistedState('app:v1:favorites', []);
@@ -61,7 +62,7 @@ export default function FavoritesRoute() {
           renderItem={({ item }) => (
             <View style={styles.row}>
               <Pressable style={styles.songMain} onPress={() => router.push({ pathname: '/musica', params: { song: item.song, artist: item.artist, artworkUrl: item.artworkUrl, storeUrl: item.storeUrl } })}>
-                {item.artworkUrl ? <Image source={{ uri: item.artworkUrl }} style={styles.artwork} /> : <View style={styles.artworkFallback}><Text style={styles.fallbackIcon}>♫</Text></View>}
+                <Artwork uri={item.artworkUrl} name={item.song} type="track" style={styles.artwork} />
                 <View style={styles.info}>
                   <Text style={styles.song} numberOfLines={1}>{item.song}</Text>
                   <Text style={styles.artist} numberOfLines={1}>{item.artist}</Text>

@@ -10,12 +10,13 @@ import {
   Pressable,
   StatusBar,
   ActivityIndicator,
-  Image,
   Linking,
   RefreshControl,
 } from 'react-native';
 
 import { colors } from '../theme/colors';
+import ArtistAvatar from '../components/ArtistAvatar';
+import Artwork from '../components/Artwork';
 import { api } from '../services/api';
 import { withCache } from '../services/cache';
 
@@ -334,11 +335,7 @@ export default function SearchScreen({
                 style={styles.popularArtist}
                 onPress={() => onOpenArtist(artist)}
               >
-                <View style={styles.artistAvatar}>
-                  <Text style={styles.artistAvatarText}>
-                    {artist.charAt(0)}
-                  </Text>
-                </View>
+                <ArtistAvatar name={artist} style={styles.artistAvatar} />
 
                 <View style={styles.resultInfo}>
                   <Text style={styles.resultTitle}>{artist}</Text>
@@ -355,7 +352,7 @@ export default function SearchScreen({
 
             {filteredResults.map((item) => (
               <Pressable key={`artist-${item.id}`} style={styles.resultItem} onPress={() => handleResultPress(item)}>
-                <View style={styles.resultIcon}><Text style={styles.resultIconText}>♫</Text></View>
+                <ArtistAvatar name={item.artist} style={styles.resultIcon} />
                 <View style={styles.resultInfo}>
                   <Text style={styles.resultTitle}>{item.title}</Text>
                   <Text style={styles.resultSubtitle}>Artista</Text>
@@ -402,7 +399,7 @@ export default function SearchScreen({
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir cifra de ${item.song}, ${item.artist}`}
                 >
-                  <Image source={{ uri: item.artworkUrl }} style={styles.musicResultArtwork} />
+                  <Artwork uri={item.artworkUrl} name={item.song} type="track" style={styles.musicResultArtwork} />
                   <View style={styles.resultInfo}>
                     <Text style={styles.resultTitle} numberOfLines={1}>{item.song}</Text>
                     <Text style={styles.resultSubtitle} numberOfLines={1}>{item.artist}</Text>
